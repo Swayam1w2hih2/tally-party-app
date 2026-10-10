@@ -1,0 +1,19 @@
+{
+  "tally_url": "http://localhost:9000",
+  "tally_company": "",
+  "read_from_date": "",
+  "your_company_name": "",
+  "app_port": 8050,
+  "open_on_other_computers": false,
+  "auto_sync_minutes": 10,
+  "tally_timeout_seconds": 120,
+  "bank_details": "Bank: State Bank of India\nA/c name: Your Company Name\nA/c no.: 000000000000\nIFSC: SBIN0000000\nUPI: yourname@sbi",
+  "portal_enabled": false,
+  "supabase_url": "",
+  "supabase_publishable_key": "",
+  "supabase_secret_key": "",
+  "portal_history_months": 24,
+  "portal_show_narration": false,
+  "portal_allow_sample": false,
+  "portal_website_url": ""
+}

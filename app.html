@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tally Party App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --surface-2:#F6F8FA; --ink:#14202E; --muted:#5B6878; --line:#D6DCE3;
+  --recv:#13795B; --recv-soft:#DDF1E8; --pay:#B42345; --pay-soft:#F8E1E6; --accent:#2952CC; --accent-soft:#E3EAFB; --warn:#9A5B00;
+  --age1:#7FB89E; --age2:#E2B84A; --age3:#E0803A; --age4:#B42345;
+  --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.06);
+  --font-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Schibsted Grotesk","IBM Plex Sans",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1620; --surface:#17212D; --surface-2:#1C2836; --ink:#E6ECF2; --muted:#93A1B1; --line:#2A3746;
+    --recv:#3CC48E; --recv-soft:#133528; --pay:#F06A86; --pay-soft:#3A1822; --accent:#7C9BFF; --accent-soft:#1E2A4A; --warn:#E7A644;
+    --age1:#4E9C7C; --age2:#C9A33E; --age3:#D2753A; --age4:#E0577A;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1620; --surface:#17212D; --surface-2:#1C2836; --ink:#E6ECF2; --muted:#93A1B1; --line:#2A3746;
+  --recv:#3CC48E; --recv-soft:#133528; --pay:#F06A86; --pay-soft:#3A1822; --accent:#7C9BFF; --accent-soft:#1E2A4A; --warn:#E7A644;
+  --age1:#4E9C7C; --age2:#C9A33E; --age3:#D2753A; --age4:#E0577A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 48px}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:36px;height:36px;border-radius:9px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--font-head);font-weight:800;font-size:17px}
+.brand h1{font-family:var(--font-head);font-size:19px;margin:0;line-height:1.15;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.sync{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+
+/* Period bar */
+.period{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--muted);font-weight:500}
+.field select,.field input{height:38px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:0 10px;min-width:0}
+.period .grow{flex:1}
+.period .asof{font-size:13px;color:var(--muted);align-self:center}
+
+/* Hero: the balance beam */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+.hero-row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end}
+.side h2{margin:0 0 2px;font-size:14px;font-weight:500;color:var(--muted)}
+.side .big{font-family:var(--font-head);font-size:clamp(26px,4.4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.side.recv .big{color:var(--recv)}
+.side.pay{text-align:right}
+.side.pay .big{color:var(--pay)}
+.side .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.net{text-align:center;padding-bottom:4px}
+.net small{display:block;font-size:12px;color:var(--muted)}
+.net strong{font-family:var(--font-head);font-size:18px}
+.beam{position:relative;height:14px;border-radius:7px;overflow:hidden;display:flex;margin-top:18px;background:var(--line)}
+.beam span{display:block;height:100%;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.beam .r{background:var(--recv)}
+.beam .p{background:var(--pay)}
+.beam-mid{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.35}
+.hero-foot{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px;gap:12px}
+
+/* Tabs + tools */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+.tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{border:0;background:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.search{flex:1;min-width:180px;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 12px}
+.tool-select{height:38px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px}
+.chk{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);cursor:pointer;user-select:none}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+
+/* Ageing */
+.ageing{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.ageing-head{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);margin-bottom:8px}
+.ageing-head strong{color:var(--ink);font-weight:600}
+.agebar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.agebar span{height:100%}
+.agelegend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.agelegend div{font-size:12px;color:var(--muted)}
+.agelegend b{display:block;font-size:14px;color:var(--ink);font-weight:600}
+.agelegend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+
+/* Party list */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.prow,.phead{display:grid;grid-template-columns:minmax(0,1fr) 80px 130px 140px 150px;gap:12px;align-items:center;padding:12px 16px}
+.phead{font-size:12px;color:var(--muted);font-weight:500;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.phead span:not(:first-child),.prow .num{text-align:right}
+.prow{width:100%;border:0;background:none;text-align:left;cursor:pointer;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow:hover{background:var(--surface-2)}
+.pname strong{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pname small{color:var(--muted);font-size:13px}
+.od{color:var(--pay);font-weight:500}
+.od.zero{color:var(--muted);font-weight:400}
+.out{font-weight:600}
+.settled{color:var(--muted);font-weight:400}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+.foot-note{font-size:12px;color:var(--muted);margin-top:14px}
+
+/* Drawer */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(10,16,24,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;z-index:31;top:0;right:0;bottom:0;width:min(760px,100%);background:var(--bg);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(0,0,0,.18);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer.on{transform:none}
+.dhead{padding:18px 20px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.dtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dtop h2{font-family:var(--font-head);font-size:22px;margin:0;line-height:1.2;letter-spacing:-.01em}
+.dmeta{color:var(--muted);font-size:13px;margin-top:2px}
+.close{border:1px solid var(--line);background:var(--surface-2);width:36px;height:36px;border-radius:9px;cursor:pointer;font-size:18px;flex:none}
+.dbal{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:14px;align-items:flex-end}
+.dbal .k{font-size:12px;color:var(--muted)}
+.dbal .v{font-family:var(--font-head);font-weight:700;font-size:18px}
+.dbal .main .v{font-size:28px;font-weight:800}
+.dbal .main.recv .v{color:var(--recv)}
+.dbal .main.pay .v{color:var(--pay)}
+.dactions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:500}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.dtabs{display:flex;gap:4px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+.dtabs button{border:0;background:none;padding:11px 12px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.dtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.dbody{flex:1;overflow-y:auto;padding:18px 20px 28px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500;background:var(--surface-2)}
+td.r,th.r{text-align:right}
+tr:last-child td{border-bottom:0}
+tfoot td{font-weight:600;background:var(--surface-2)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;font-weight:500}
+.tag.bill{background:var(--accent-soft);color:var(--accent)}
+.tag.pay{background:var(--recv-soft);color:var(--recv)}
+.late{color:var(--pay);font-weight:500}
+.ok{color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.summary div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.summary small{display:block;font-size:12px;color:var(--muted)}
+.summary b{font-size:16px}
+.narr{color:var(--muted);font-size:13px}
+
+/* Modal */
+.modal{position:fixed;inset:0;display:none;place-items:center;padding:20px;z-index:40;background:rgba(10,16,24,.35)}
+.modal.on{display:grid}
+.modal-card{background:var(--surface);border-radius:14px;width:min(560px,100%);padding:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.modal-card h3{margin:0 0 4px;font-family:var(--font-head);font-size:18px}
+.modal-card p{margin:0 0 12px;color:var(--muted);font-size:13px}
+.modal-card textarea{width:100%;min-height:240px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:12px;font-size:14px;line-height:1.5;resize:vertical}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;align-items:center}
+.copied{font-size:13px;color:var(--recv);margin-right:auto}
+
+
+/* Section nav */
+.nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:16px;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:15px}
+.nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.view[hidden]{display:none}
+.summary.s4{grid-template-columns:repeat(4,1fr)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.grid2 .card{margin-bottom:0}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.card h3{font-family:var(--font-head);font-size:16px;margin:0}
+.link{border:0;background:none;color:var(--accent);cursor:pointer;font-size:13px;font-weight:500;padding:4px 0}
+.mini{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.mini:first-child{border-top:0}
+.mini:hover strong{color:var(--accent)}
+.mini strong{display:block;font-weight:600;font-size:14px}
+.mini small{color:var(--muted);font-size:13px}
+.mini .num{text-align:right;font-weight:600}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--surface-2)}
+.st{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;font-weight:500}
+.st.paid{background:var(--recv-soft);color:var(--recv)}
+.st.part{background:var(--accent-soft);color:var(--accent)}
+.st.unpaid{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.st.od{background:var(--pay-soft);color:var(--pay)}
+td.party{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}.summary.s4{grid-template-columns:1fr 1fr}}
+
+
+/* ---- app additions ---- */
+.rolebar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:var(--ink);color:var(--bg);padding:8px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px}
+.rolebar .lbl{opacity:.75}
+.role{display:inline-flex;background:rgba(255,255,255,.12);border-radius:9px;padding:3px}
+.role button{border:0;background:none;color:inherit;padding:5px 12px;border-radius:7px;cursor:pointer;font-weight:500;font-size:13px;opacity:.8}
+.role button[aria-pressed="true"]{background:var(--bg);color:var(--ink);opacity:1}
+.rolebar select{height:30px;border-radius:7px;border:0;padding:0 8px;background:var(--bg);color:var(--ink);font-size:13px;max-width:260px}
+.topright{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot.ok{background:var(--recv)}.dot.bad{background:var(--pay)}.dot.run{background:var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.banner{border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;border:1px solid var(--line)}
+.banner.err{background:var(--pay-soft);color:var(--ink)}
+.banner.info{background:var(--accent-soft)}
+.banner b{display:block;margin-bottom:2px}
+.setup{max-width:640px;margin:40px auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:var(--shadow)}
+.setup h2{font-family:var(--font-head);margin:0 0 6px;font-size:24px}
+.setup p{color:var(--muted);margin:0 0 14px}
+.setup ol{padding-left:20px;margin:0 0 16px;line-height:1.7}
+.logbox{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:12px/1.5 ui-monospace,Consolas,monospace;white-space:pre-wrap;max-height:220px;overflow:auto;margin-top:14px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.chk2{font-size:13px;color:var(--muted)}
+.okc{color:var(--recv);font-weight:500}.badc{color:var(--pay);font-weight:500}
+.duecard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+.duecard .k{font-size:14px;color:var(--muted)}
+.duecard .amt{font-family:var(--font-head);font-weight:800;font-size:clamp(34px,7vw,48px);letter-spacing:-.02em;line-height:1.1;margin:2px 0 12px}
+.duefacts{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px}
+.paybox{margin-top:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px;white-space:pre-line}
+.pwrap{max-width:820px;margin:0 auto;padding:0 18px 48px}
+.ptop{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 0 16px}
+.ptop .who{font-size:13px;color:var(--muted);text-align:right}
+.ptop .who b{display:block;color:var(--ink);font-size:14px}
+.ptools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.onacc{font-size:13px;color:var(--muted);margin-top:8px}
+[hidden]{display:none!important}
+.sform{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sform label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
+.sform .full{grid-column:1/-1}
+.sform input[type=text],.sform input[type=number],.sform input[type=password],.sform textarea{height:38px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:0 10px;font-size:14px;color:var(--ink);width:100%}
+.sform textarea{height:auto;min-height:96px;padding:10px;resize:vertical}
+.sform .hint{font-weight:400;font-size:12px;color:var(--muted)}
+.sform .tick{flex-direction:row;align-items:center;gap:8px;font-size:14px;color:var(--ink)}
+.sform .tick input{width:17px;height:17px;accent-color:var(--accent)}
+.savebar{position:sticky;bottom:0;background:var(--bg);padding:12px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:6px}
+@media (max-width:760px){.sform{grid-template-columns:1fr}}
+
+@media (max-width:760px){
+  .wrap{padding:0 14px 40px}
+  .hero{padding:18px 16px 14px}
+  .hero-row{grid-template-columns:1fr 1fr}
+  .net{grid-column:1/-1;order:3;text-align:left;padding:0}
+  .phead{display:none}
+  .prow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name out" "name od";row-gap:2px}
+  .prow .pname{grid-area:name}
+  .prow .c-out{grid-area:out}
+  .prow .c-od{grid-area:od;font-size:13px}
+  .prow .c-bills,.prow .c-billed{display:none}
+  .agelegend{grid-template-columns:repeat(2,1fr)}
+  .summary{grid-template-columns:1fr 1fr}
+  .period .grow{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+@media (max-width:760px){.rolebar{padding-left:14px;padding-right:14px}}
+</style>
+</head>
+<body>
+<div class="rolebar" id="rolebar" hidden>
+  <span class="lbl">View as</span>
+  <div class="role">
+    <button data-role="admin" aria-pressed="true">Admin</button>
+    <button data-role="customer" aria-pressed="false">Customer view</button>
+  </div>
+  <select id="asCustomer" aria-label="Customer to preview" hidden></select>
+</div>
+
+<!-- First run: no data yet -->
+<div id="setup" hidden>
+  <div class="wrap">
+    <section class="setup">
+      <h2>Connect to Tally</h2>
+      <p>The app has no data yet. Before pressing Sync, check these in Tally:</p>
+      <ol>
+        <li>Tally is open and your company is loaded.</li>
+        <li>F1 (Help) → Settings → Connectivity: Tally acts as <b>Both</b> (or Server) on port <b>9000</b>.</li>
+        <li>Bill-wise entry is on (F11), and party ledgers have bill-by-bill set to Yes.</li>
+      </ol>
+      <div class="btnrow">
+        <button class="btn primary" id="setupSync">Sync from Tally now</button>
+        <button class="btn" id="setupSample">Try with sample data</button>
+        <button class="btn" id="setupSettings">Settings</button>
+      </div>
+      <div class="banner err" id="setupErr" style="margin-top:14px" hidden></div>
+      <div class="logbox" id="setupLog" hidden></div>
+    </section>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminApp" hidden>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">₹</div>
+      <div><h1 id="coName">Tally Party App</h1><p>Party outstanding from Tally</p></div>
+    </div>
+    <div class="topright">
+      <div class="sync"><span class="dot" id="syncDot" aria-hidden="true"></span><span id="syncText"></span></div>
+      <button class="btn" id="syncBtn">Sync now</button>
+    </div>
+  </header>
+  <div class="banner info" id="sampleBanner" hidden><b>You are looking at sample data.</b>Press "Sync now" to load your own data from Tally.</div>
+  <div class="banner err" id="errBanner" hidden></div>
+
+  <nav class="nav" role="tablist" aria-label="Sections">
+    <button role="tab" data-view="overview" aria-selected="true">Overview</button>
+    <button role="tab" data-view="parties" aria-selected="false">Parties</button>
+    <button role="tab" data-view="bills" aria-selected="false">Bills</button>
+    <button role="tab" data-view="money" aria-selected="false">Payments</button>
+    <button role="tab" data-view="ageing" aria-selected="false">Ageing</button>
+    <button role="tab" data-view="check" aria-selected="false">Data check</button>
+    <button role="tab" data-view="logins" aria-selected="false" id="navLogins" hidden>Customer links</button>
+    <button role="tab" data-view="settings" aria-selected="false">Settings</button>
+  </nav>
+
+  <section class="period" aria-label="Report period">
+    <div class="field">
+      <label for="preset">Period</label>
+      <select id="preset">
+        <option value="fy">This financial year</option>
+        <option value="lfy">Last financial year</option>
+        <option value="tm">This month</option>
+        <option value="lm">Last month</option>
+        <option value="l30">Last 30 days</option>
+        <option value="all">All data</option>
+        <option value="custom">Custom dates</option>
+      </select>
+    </div>
+    <div class="field"><label for="from">From</label><input type="date" id="from"></div>
+    <div class="field"><label for="to">To</label><input type="date" id="to"></div>
+    <div class="grow"></div>
+    <div class="asof" id="asof"></div>
+  </section>
+
+  <div class="view" data-view="overview">
+    <section class="hero" aria-label="Overall position">
+      <div class="hero-row">
+        <div class="side recv"><h2>They owe you</h2><div class="big num" id="hRecv"></div><div class="sub" id="hRecvSub"></div></div>
+        <div class="net"><small>Net position</small><strong class="num" id="hNet"></strong></div>
+        <div class="side pay"><h2>You owe them</h2><div class="big num" id="hPay"></div><div class="sub" id="hPaySub"></div></div>
+      </div>
+      <div class="beam" aria-hidden="true"><span class="r" id="beamR"></span><span class="p" id="beamP"></span><i class="beam-mid"></i></div>
+      <div class="hero-foot"><span>Sundry Debtors</span><span>Sundry Creditors</span></div>
+    </section>
+    <div class="summary s4" id="ovStats"></div>
+    <div class="grid2">
+      <section class="card"><div class="card-head"><h3>Most overdue customers</h3><button class="link" data-goto="ageing">See ageing</button></div><div id="ovOverdue"></div></section>
+      <section class="card"><div class="card-head"><h3>Supplier bills to pay next</h3><button class="link" data-goto="bills">See bills</button></div><div id="ovDue"></div></section>
+    </div>
+    <section class="card"><div class="card-head"><h3>Latest entries in this period</h3><button class="link" data-goto="money">See payments</button></div><div id="ovRecent"></div></section>
+  </div>
+
+  <div class="view" data-view="parties" hidden>
+    <div class="bar">
+      <div class="tabs" id="partyTabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="dr">To receive</button>
+        <button role="tab" aria-selected="false" data-tab="cr">To pay</button>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Search party, city or group" aria-label="Search parties">
+      <select class="tool-select" id="sort" aria-label="Sort parties">
+        <option value="out">Highest outstanding</option><option value="od">Most overdue</option>
+        <option value="billed">Most billed in period</option><option value="name">Name A to Z</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="odOnly">Overdue only</label>
+      <label class="chk"><input type="checkbox" id="hideZero" checked>Hide settled</label>
+    </div>
+    <section class="ageing" id="ageing"></section>
+    <section class="list" aria-label="Parties">
+      <div class="phead"><span>Party</span><span>Bills due</span><span>Overdue</span><span>Billed in period</span><span>Outstanding</span></div>
+      <div id="rows"></div>
+    </section>
+    <p class="foot-note">Outstanding and ageing are as on the "To" date. Tap a party for its bills and statement.</p>
+  </div>
+
+  <div class="view" data-view="bills" hidden>
+    <div class="bar">
+      <select class="tool-select" id="bSide" aria-label="Whose bills"><option value="all">All bills</option><option value="dr">Customer bills</option><option value="cr">Supplier bills</option></select>
+      <select class="tool-select" id="bStatus" aria-label="Status"><option value="all">Any status</option><option value="unpaid">Unpaid</option><option value="part">Partly paid</option><option value="paid">Fully paid</option><option value="od">Overdue</option></select>
+      <input class="search" id="bSearch" type="search" placeholder="Search bill no. or party" aria-label="Search bills">
+      <select class="tool-select" id="bSort" aria-label="Sort"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="amt">Highest amount</option><option value="pend">Most pending</option></select>
+    </div>
+    <div class="summary s4" id="bSummary"></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Bill date</th><th>Bill no.</th><th>Party</th><th>Type</th><th class="r">Amount</th><th class="r">Adjusted</th><th class="r">Pending</th><th>Due date</th><th>Status</th></tr></thead>
+      <tbody id="bRows"></tbody>
+    </table></div>
+    <p class="foot-note">Bills dated within the period. Adjusted and pending amounts are as on the "To" date.</p>
+  </div>
+
+  <div class="view" data-view="money" hidden>
+    <div class="bar">
+      <select class="tool-select" id="mSide" aria-label="Whose payments"><option value="all">Customers and suppliers</option><option value="dr">From customers</option><option value="cr">To suppliers</option></select>
+      <select class="tool-select" id="mType" aria-label="Voucher type"></select>
+      <input class="search" id="mSearch" type="search" placeholder="Search voucher, party or narration" aria-label="Search payments">
+    </div>
+    <div class="summary s4" id="mSummary"></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Date</th><th>Voucher no.</th><th>Party</th><th>Type</th><th>Adjusted against</th><th>Narration</th><th class="r">Amount</th></tr></thead>
+      <tbody id="mRows"></tbody>
+    </table></div>
+    <p class="foot-note">Receipts, payments, credit notes and anything else that reduced a party's balance in the period.</p>
+  </div>
+
+  <div class="view" data-view="ageing" hidden>
+    <div class="bar">
+      <div class="tabs" id="ageTabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="dr">To receive</button>
+        <button role="tab" aria-selected="false" data-tab="cr">To pay</button>
+      </div>
+    </div>
+    <div class="tablewrap"><table>
+      <thead id="agHead"></thead><tbody id="agRows"></tbody><tfoot id="agFoot"></tfoot>
+    </table></div>
+    <p class="foot-note">Age is counted from the bill date to the "To" date.</p>
+  </div>
+
+  <div class="view" data-view="check" hidden>
+    <div class="summary s4" id="cStats"></div>
+    <section class="card" id="cWarnings"></section>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Party</th><th>Group</th><th class="r">Balance in app</th><th class="r">Balance in Tally</th><th class="r">Difference</th><th>Result</th></tr></thead>
+      <tbody id="cRows"></tbody>
+    </table></div>
+    <p class="foot-note">Both balances are as on the day of the last sync. If a party doesn't match, check for vouchers dated after the sync, or entries the app couldn't read.</p>
+  </div>
+
+  <div class="view" data-view="logins" hidden><div id="lgBody"></div></div>
+
+  <div class="view" data-view="settings" hidden><div id="stBody"></div></div>
+</div>
+</div>
+
+<!-- CUSTOMER VIEW (preview) -->
+<div id="customerApp" hidden><div class="pwrap" id="cust"></div></div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dName" aria-hidden="true">
+  <div class="dhead">
+    <div class="dtop"><div><h2 id="dName"></h2><div class="dmeta" id="dMeta"></div></div><button class="close" id="dClose" aria-label="Close">×</button></div>
+    <div class="dbal" id="dBal"></div>
+    <div class="dactions" id="dActions"></div>
+  </div>
+  <div class="dtabs" role="tablist">
+    <button role="tab" data-dtab="pending" aria-selected="true">Pending bills</button>
+    <button role="tab" data-dtab="period" aria-selected="false">Entries in period</button>
+    <button role="tab" data-dtab="stmt" aria-selected="false">Statement</button>
+  </div>
+  <div class="dbody" id="dBody"></div>
+</aside>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal-card">
+    <h3 id="mTitle">Payment reminder</h3>
+    <p>Edit if needed, then copy it into WhatsApp, SMS or email.</p>
+    <textarea id="mText" aria-label="Reminder message"></textarea>
+    <div class="modal-actions"><span class="copied" id="mCopied" role="status"></span><button class="btn" id="mClose">Close</button><button class="btn primary" id="mCopy">Copy message</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+const DAY=86400000;
+const toDay=s=>Math.floor(Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10))/DAY);
+const toISO=d=>new Date(d*DAY).toISOString().slice(0,10);
+const fmtDate=d=>new Date(d*DAY).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+const inr=new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+const rs=n=>(n<0?'−':'')+'₹'+inr.format(Math.abs(Math.round(n)));
+const compact=n=>{const a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(2)+' L';return rs(n)};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const stat=(l,v)=>'<div><small>'+l+'</small><b class="num">'+v+'</b></div>';
+const now=new Date();
+const TODAY=Math.floor(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())/DAY);
+const FYY=now.getMonth()>=3?now.getFullYear():now.getFullYear()-1;
+const FYS=toDay(FYY+'-04-01');
+
+/* ---------- data ---------- */
+let D=null, CONF={};
+function load(raw){
+  const d={raw,company:raw.company,source:raw.source,warnings:raw.warnings||[],syncedAt:raw.synced_at,
+    booksFrom:toDay(raw.books_from),asOf:toDay(raw.as_of),parties:raw.parties,P:{},billsBy:{},settleBy:{},entriesBy:{},E:{},bills:[],entries:[]};
+  d.parties.forEach(p=>{d.P[p.id]=p;d.billsBy[p.id]=[];d.entriesBy[p.id]=[]});
+  raw.bills.forEach(b=>{const x={...b,date:toDay(b.date)};d.bills.push(x);(d.billsBy[x.party]||[]).push(x);d.settleBy[x.id]=[]});
+  raw.settlements.forEach(s=>{(d.settleBy[s.bill]=d.settleBy[s.bill]||[]).push({...s,date:toDay(s.date)})});
+  raw.entries.forEach(e=>{const x={...e,date:toDay(e.date)};d.entries.push(x);d.E[x.id]=x;(d.entriesBy[x.party]||[]).push(x)});
+  d.entries.sort((a,b)=>a.date-b.date);
+  Object.values(d.entriesBy).forEach(l=>l.sort((a,b)=>a.date-b.date));
+  d.minDay=Math.min(d.booksFrom,...d.bills.map(b=>b.date));
+  D=d;
+}
+function billInfo(b,to){
+  let adj=0;for(const s of D.settleBy[b.id]||[])if(s.date<=to)adj+=s.amount;
+  const pend=b.amount-adj,due=b.date+(b.credit||0),od=pend>.5?Math.max(0,to-due):0;
+  const status=pend<=.5?'paid':od>0?'od':adj>0.5?'part':'unpaid';
+  return {b,p:D.P[b.party],adj,pend,due,od,status,age:to-b.date};
+}
+function partyState(p,from,to){
+  let open=p.opening,close=p.opening,billed=0,credited=0;const inPeriod=[];
+  for(const e of D.entriesBy[p.id]){
+    if(e.date<from)open+=e.delta;
+    if(e.date<=to)close+=e.delta;
+    if(e.date>=from&&e.date<=to){inPeriod.push(e);if(e.delta>0)billed+=e.delta;else credited-=e.delta}
+  }
+  const pending=[];let pendSum=0,overdue=0;const ageing=[0,0,0,0];
+  for(const b of D.billsBy[p.id]){
+    if(b.date>to)continue;
+    const x=billInfo(b,to);
+    if(x.pend>0.5){pending.push(x);pendSum+=x.pend;if(x.od>0)overdue+=x.pend;ageing[x.age<=30?0:x.age<=60?1:x.age<=90?2:3]+=x.pend}
+    else if(x.pend<-0.5)pendSum+=x.pend;
+  }
+  pending.sort((a,b)=>a.b.date-b.b.date);
+  return {p,open,close,billed,credited,inPeriod,pending,overdue,ageing,onAcc:close-pendSum};
+}
+
+/* ---------- state ---------- */
+const S={role:'admin',view:'overview',preset:'fy',from:FYS,to:TODAY,tab:'dr',search:'',sort:'out',odOnly:false,hideZero:true,
+  open:null,dtab:'pending',st:{},bSide:'all',bStatus:'all',bSearch:'',bSort:'new',mSide:'all',mType:'all',mSearch:'',agTab:'dr',
+  cust:null,cTab:'pending',cPreset:'fy',cFrom:FYS,cTo:TODAY,payOpen:false};
+function range(k){
+  const y=now.getFullYear(),m=now.getMonth();
+  const ms=toDay(y+'-'+String(m+1).padStart(2,'0')+'-01');
+  const pm=new Date(Date.UTC(y,m-1,1)),pms=Math.floor(pm.getTime()/DAY);
+  return {fy:[FYS,TODAY],lfy:[toDay((FYY-1)+'-04-01'),FYS-1],tm:[ms,TODAY],lm:[pms,ms-1],l30:[TODAY-29,TODAY],all:[D?D.minDay:FYS,TODAY]}[k];
+}
+function compute(){S.st={};D.parties.forEach(p=>S.st[p.id]=partyState(p,S.from,S.to))}
+const list=side=>Object.values(S.st).filter(s=>s.p.side===side);
+
+/* ---------- admin renders ---------- */
+function renderHeader(){
+  $('coName').textContent=CONF.company_name||D.company;
+  $('navLogins').hidden=!CONF.portal_enabled;
+  $('sampleBanner').hidden=D.source!=='sample';
+  $('asof').textContent='Balances as on '+fmtDate(S.to);
+}
+function renderHero(){
+  let r=0,p=0,ro=0,po=0,nr=0,np=0;
+  list('dr').forEach(s=>{r+=Math.max(0,s.close);ro+=s.overdue;if(s.close>.5)nr++});
+  list('cr').forEach(s=>{p+=Math.max(0,s.close);po+=s.overdue;if(s.close>.5)np++});
+  $('hRecv').textContent=compact(r);$('hPay').textContent=compact(p);
+  $('hRecvSub').textContent=nr+' parties, '+compact(ro)+' overdue';
+  $('hPaySub').textContent=np+' parties, '+compact(po)+' overdue';
+  const net=r-p;$('hNet').textContent=(net>=0?'+':'−')+compact(Math.abs(net)).replace('−','');
+  $('hNet').style.color=net>=0?'var(--recv)':'var(--pay)';
+  const t=r+p||1;$('beamR').style.width=(r/t*100)+'%';$('beamP').style.width=(p/t*100)+'%';
+}
+function dueText(x,to){
+  if(x.od>0)return '<span class="late">'+x.od+' day'+(x.od===1?'':'s')+' overdue</span>';
+  const l=x.due-to;return '<span class="ok">'+(l===0?'Due today':'Due in '+l+' day'+(l===1?'':'s'))+'</span>';
+}
+function mini(pid,title,sub,val,color){
+  return '<button class="mini" data-party="'+pid+'"><span><strong>'+esc(title)+'</strong><small>'+sub+'</small></span><span class="num"'+(color?' style="color:'+color+'"':'')+'>'+val+'</span></button>';
+}
+function renderOverview(){
+  let sb=0,sr=0,pb=0,pp=0;
+  list('dr').forEach(s=>{sb+=s.billed;sr+=s.credited});list('cr').forEach(s=>{pb+=s.billed;pp+=s.credited});
+  $('ovStats').innerHTML=stat('Billed to customers',compact(sb))+stat('Received from customers',compact(sr))+stat('Billed by suppliers',compact(pb))+stat('Paid to suppliers',compact(pp));
+  const od=list('dr').filter(s=>s.overdue>0).sort((a,b)=>b.overdue-a.overdue).slice(0,5);
+  $('ovOverdue').innerHTML=od.length?od.map(s=>mini(s.p.id,s.p.name,'Oldest overdue: '+Math.max(...s.pending.map(x=>x.od))+' days',rs(s.overdue),'var(--pay)')).join(''):'<div class="empty">No customer has overdue bills on this date.</div>';
+  const due=[];list('cr').forEach(s=>s.pending.forEach(x=>due.push(x)));due.sort((a,b)=>a.due-b.due);
+  $('ovDue').innerHTML=due.length?due.slice(0,5).map(x=>mini(x.p.id,x.p.name,esc(x.b.ref)+', '+dueText(x,S.to),rs(x.pend))).join(''):'<div class="empty">No supplier bills are pending.</div>';
+  const rec=D.entries.filter(e=>e.date>=S.from&&e.date<=S.to).slice(-6).reverse();
+  $('ovRecent').innerHTML=rec.length?rec.map(e=>mini(e.party,D.P[e.party].name,fmtDate(e.date)+', '+esc(e.type)+' '+esc(e.no),rs(Math.abs(e.delta)),e.delta<0?'var(--recv)':'')).join(''):'<div class="empty">No entries in this period.</div>';
+}
+function renderAgeingStrip(){
+  const ag=[0,0,0,0];list(S.tab).forEach(s=>s.ageing.forEach((v,i)=>ag[i]+=v));
+  const tot=ag.reduce((a,b)=>a+b,0),labels=['0 to 30 days','31 to 60 days','61 to 90 days','Over 90 days'],cols=['var(--age1)','var(--age2)','var(--age3)','var(--age4)'];
+  $('ageing').innerHTML='<div class="ageing-head"><span>Age of pending bills, '+(S.tab==='dr'?'to receive':'to pay')+'</span><strong class="num">'+rs(tot)+'</strong></div><div class="agebar">'+
+    ag.map((v,i)=>'<span style="width:'+(tot?v/tot*100:0)+'%;background:'+cols[i]+'"></span>').join('')+'</div><div class="agelegend">'+
+    ag.map((v,i)=>'<div><i style="background:'+cols[i]+'"></i>'+labels[i]+'<b class="num">'+compact(v)+'</b></div>').join('')+'</div>';
+}
+function renderRows(){
+  const q=S.search.trim().toLowerCase();
+  let l=list(S.tab);
+  if(q)l=l.filter(s=>(s.p.name+' '+s.p.city+' '+s.p.group).toLowerCase().includes(q));
+  if(S.odOnly)l=l.filter(s=>s.overdue>0);
+  if(S.hideZero)l=l.filter(s=>Math.abs(s.close)>.5||s.billed>0);
+  const so={out:(a,b)=>b.close-a.close,od:(a,b)=>b.overdue-a.overdue,billed:(a,b)=>b.billed-a.billed,name:(a,b)=>a.p.name.localeCompare(b.p.name)};
+  l.sort(so[S.sort]);
+  $('rows').innerHTML=l.length?l.map(s=>{const n=s.pending.length;
+    const out=s.close>.5?rs(s.close):s.close<-.5?rs(-s.close)+' advance':'Settled';
+    return '<button class="prow" data-party="'+s.p.id+'"><span class="pname"><strong>'+esc(s.p.name)+'</strong><small>'+esc(s.p.city||s.p.group)+', '+n+' pending bill'+(n===1?'':'s')+'</small></span>'+
+    '<span class="num c-bills">'+n+'</span><span class="num c-od od'+(s.overdue>0?'':' zero')+'">'+(s.overdue>0?rs(s.overdue)+' overdue':'Nothing overdue')+'</span>'+
+    '<span class="num c-billed">'+rs(s.billed)+'</span><span class="num c-out out'+(s.close>.5?'':' settled')+'">'+out+'</span></button>'}).join('')
+    :'<div class="empty">No parties match. Clear the search or change the filters.</div>';
+}
+function statusTag(x){
+  if(x.status==='paid')return '<span class="st paid">Adjusted</span>';
+  if(x.status==='od')return '<span class="st od">Overdue '+x.od+'d</span>';
+  if(x.status==='part')return '<span class="st part">Partly adjusted</span>';
+  const l=x.due-S.to;return '<span class="st unpaid">'+(l<=0?'Due today':'Due in '+l+'d')+'</span>';
+}
+function renderBills(){
+  const q=S.bSearch.trim().toLowerCase();
+  let l=D.bills.filter(b=>b.date>=S.from&&b.date<=S.to&&b.amount>0&&(S.bSide==='all'||D.P[b.party].side===S.bSide)).map(b=>billInfo(b,S.to));
+  if(q)l=l.filter(x=>(x.b.ref+' '+x.p.name).toLowerCase().includes(q));
+  if(S.bStatus!=='all')l=l.filter(x=>S.bStatus==='unpaid'?(x.adj<=.5&&x.pend>.5):S.bStatus==='part'?(x.adj>.5&&x.pend>.5):x.status===S.bStatus);
+  const so={new:(a,b)=>b.b.date-a.b.date,old:(a,b)=>a.b.date-b.b.date,amt:(a,b)=>b.b.amount-a.b.amount,pend:(a,b)=>b.pend-a.pend};l.sort(so[S.bSort]);
+  const t=l.reduce((a,x)=>a+x.b.amount,0),pe=l.reduce((a,x)=>a+Math.max(0,x.pend),0),od=l.reduce((a,x)=>a+(x.od>0?x.pend:0),0);
+  $('bSummary').innerHTML=stat('Bills',l.length)+stat('Total billed',compact(t))+stat('Still pending',compact(pe))+stat('Overdue',compact(od));
+  const shown=l.slice(0,1000);
+  $('bRows').innerHTML=shown.length?shown.map(x=>'<tr class="click" tabindex="0" data-party="'+x.p.id+'"><td>'+fmtDate(x.b.date)+'</td><td>'+esc(x.b.ref)+'</td><td class="party">'+esc(x.p.name)+'</td><td><span class="tag bill">'+esc(x.b.vtype||'Bill')+'</span></td><td class="r num">'+rs(x.b.amount)+'</td><td class="r num">'+rs(x.adj)+'</td><td class="r num"><b>'+rs(Math.max(0,x.pend))+'</b></td><td>'+fmtDate(x.due)+'</td><td>'+statusTag(x)+'</td></tr>').join('')+(l.length>1000?'<tr><td colspan="9" class="empty">Showing the first 1,000 of '+l.length+' bills. Narrow the period or search.</td></tr>':'')
+    :'<tr><td colspan="9" class="empty">No bills match these filters.</td></tr>';
+}
+function renderMoney(){
+  const base=D.entries.filter(e=>e.delta<0&&e.date>=S.from&&e.date<=S.to&&(S.mSide==='all'||D.P[e.party].side===S.mSide));
+  const types=[...new Set(base.map(e=>e.type))].sort();
+  if(S.mType!=='all'&&!types.includes(S.mType))S.mType='all';
+  $('mType').innerHTML='<option value="all">All voucher types</option>'+types.map(t=>'<option'+(t===S.mType?' selected':'')+'>'+esc(t)+'</option>').join('');
+  const q=S.mSearch.trim().toLowerCase();
+  let l=base.filter(e=>S.mType==='all'||e.type===S.mType);
+  if(q)l=l.filter(e=>(e.no+' '+D.P[e.party].name+' '+e.narration).toLowerCase().includes(q));
+  l=l.slice().reverse();
+  const fr=l.filter(e=>D.P[e.party].side==='dr').reduce((a,e)=>a-e.delta,0),to=l.filter(e=>D.P[e.party].side==='cr').reduce((a,e)=>a-e.delta,0);
+  $('mSummary').innerHTML=stat('From customers',compact(fr))+stat('To suppliers',compact(to))+stat('Net',(fr-to>=0?'+':'')+compact(fr-to))+stat('Entries',l.length);
+  const shown=l.slice(0,1000);
+  $('mRows').innerHTML=shown.length?shown.map(e=>'<tr class="click" tabindex="0" data-party="'+e.party+'"><td>'+fmtDate(e.date)+'</td><td>'+esc(e.no)+'</td><td class="party">'+esc(D.P[e.party].name)+'</td><td><span class="tag pay">'+esc(e.type)+'</span></td><td class="narr">'+(e.allocs.filter(a=>a.type.toLowerCase()==='agst ref').map(a=>esc(a.ref)).join(', ')||'On account')+'</td><td class="narr" style="white-space:normal;min-width:180px">'+esc(e.narration)+'</td><td class="r num" style="color:'+(D.P[e.party].side==='dr'?'var(--recv)':'var(--pay)')+'">'+rs(-e.delta)+'</td></tr>').join('')
+    :'<tr><td colspan="7" class="empty">No entries match these filters.</td></tr>';
+}
+function renderAgeingView(){
+  const l=list(S.agTab).filter(s=>Math.abs(s.close)>.5).sort((a,b)=>b.close-a.close);
+  const showAcc=l.some(s=>Math.abs(s.onAcc)>.5);
+  $('agHead').innerHTML='<tr><th>Party</th><th class="r">0 to 30 days</th><th class="r">31 to 60 days</th><th class="r">61 to 90 days</th><th class="r">Over 90 days</th>'+(showAcc?'<th class="r">On account</th>':'')+'<th class="r">Total</th></tr>';
+  const t=[0,0,0,0];let ta=0,tt=0;
+  $('agRows').innerHTML=l.length?l.map(s=>{s.ageing.forEach((v,i)=>t[i]+=v);ta+=s.onAcc;tt+=s.close;
+    return '<tr class="click" tabindex="0" data-party="'+s.p.id+'"><td class="party"><b>'+esc(s.p.name)+'</b></td>'+s.ageing.map((v,i)=>'<td class="r num'+(i>=2&&v>0?' late':'')+'">'+(v>0?rs(v):'–')+'</td>').join('')+(showAcc?'<td class="r num">'+(Math.abs(s.onAcc)>.5?rs(s.onAcc):'–')+'</td>':'')+'<td class="r num"><b>'+rs(s.close)+'</b></td></tr>'}).join('')
+    :'<tr><td colspan="7" class="empty">Nothing outstanding on this date.</td></tr>';
+  $('agFoot').innerHTML='<tr><td>Total</td>'+t.map(v=>'<td class="r num">'+rs(v)+'</td>').join('')+(showAcc?'<td class="r num">'+rs(ta)+'</td>':'')+'<td class="r num">'+rs(tt)+'</td></tr>';
+}
+function renderCheck(){
+  const st=D.parties.map(p=>({p,app:partyState(p,D.minDay,D.asOf).close}));
+  const avail=st.filter(x=>x.p.tally_closing!=null);
+  const bad=avail.filter(x=>Math.abs(x.app-x.p.tally_closing)>1);
+  $('cStats').innerHTML=stat('Last sync',D.syncedAt?D.syncedAt.replace('T',' ').slice(0,16):'–')+stat('Parties',D.parties.length)+stat('Bills / entries',D.bills.length+' / '+D.entries.length)+
+    stat('Balances matching Tally',avail.length?(avail.length-bad.length)+' of '+avail.length:'Not available');
+  const w=D.warnings.slice();
+  if(D.source==='sample')w.unshift('This is sample data, so there are no Tally balances to compare with.');
+  $('cWarnings').innerHTML='<div class="card-head"><h3>'+(w.length?'Things to look at':'Everything looks fine')+'</h3></div>'+(w.length?'<ul style="margin:0;padding-left:18px">'+w.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p class="onacc">Data was read from Tally with no problems.</p>');
+  st.sort((a,b)=>{const da=a.p.tally_closing==null?0:Math.abs(a.app-a.p.tally_closing),db=b.p.tally_closing==null?0:Math.abs(b.app-b.p.tally_closing);return db-da||a.p.name.localeCompare(b.p.name)});
+  $('cRows').innerHTML=st.map(x=>{const t=x.p.tally_closing,diff=t==null?null:x.app-t;
+    return '<tr class="click" tabindex="0" data-party="'+x.p.id+'"><td class="party">'+esc(x.p.name)+'</td><td>'+esc(x.p.group)+'</td><td class="r num">'+rs(x.app)+'</td><td class="r num">'+(t==null?'–':rs(t))+'</td><td class="r num">'+(diff==null?'–':rs(diff))+'</td><td>'+(t==null?'<span class="ok">Not available</span>':Math.abs(diff)<=1?'<span class="okc">Matches</span>':'<span class="badc">Check</span>')+'</td></tr>'}).join('');
+}
+function renderAll(){if(!D)return;compute();renderHeader();renderHero();renderOverview();renderAgeingStrip();renderRows();renderBills();renderMoney();renderAgeingView();renderCheck();if(S.open)renderDrawer();if(S.role==='customer')renderCustomer()}
+
+/* ---------- drawer ---------- */
+function stmtTable(st,from,to,p,plain){
+  const sfx=b=>b>.5?(p.side==='dr'?' Dr':' Cr'):b<-.5?(p.side==='dr'?' Cr':' Dr'):'';
+  let bal=st.open,ti=0,td=0;
+  let rows='<tr><td>'+fmtDate(from)+'</td><td colspan="2"><b>Opening balance</b></td><td></td><td></td><td class="r num"><b>'+rs(Math.abs(bal))+(plain?'':sfx(bal))+'</b></td></tr>';
+  for(const e of st.inPeriod){bal+=e.delta;if(e.delta>0)ti+=e.delta;else td-=e.delta;
+    rows+='<tr><td>'+fmtDate(e.date)+'</td><td>'+esc(e.type)+'</td><td>'+esc(e.no)+'</td><td class="r num">'+(e.delta>0?rs(e.delta):'')+'</td><td class="r num">'+(e.delta<0?rs(-e.delta):'')+'</td><td class="r num">'+rs(Math.abs(bal))+(plain?'':sfx(bal))+'</td></tr>'}
+  const h1=plain?'Bill amount':(p.side==='dr'?'Debit':'Credit'),h2=plain?'Payment / credit':(p.side==='dr'?'Credit':'Debit');
+  return '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Voucher no.</th><th class="r">'+h1+'</th><th class="r">'+h2+'</th><th class="r">Balance</th></tr></thead><tbody>'+rows+
+    '</tbody><tfoot><tr><td colspan="3">Closing balance on '+fmtDate(to)+'</td><td class="r num">'+rs(ti)+'</td><td class="r num">'+rs(td)+'</td><td class="r num">'+rs(Math.abs(bal))+(plain?'':sfx(bal))+'</td></tr></tfoot></table></div>';
+}
+function pendingTable(st,to){
+  if(!st.pending.length)return '<div class="empty">No pending bills as on '+fmtDate(to)+'.</div>'+(Math.abs(st.onAcc)>.5?'<p class="onacc">Balance not linked to any bill (on account or advance): '+rs(st.onAcc)+'</p>':'');
+  return '<div class="tablewrap"><table><thead><tr><th>Bill no.</th><th>Bill date</th><th>Due date</th><th class="r">Bill amount</th><th class="r">Pending</th><th>Status</th></tr></thead><tbody>'+
+    st.pending.map(x=>'<tr><td>'+esc(x.b.ref)+'</td><td>'+fmtDate(x.b.date)+'</td><td>'+fmtDate(x.due)+'</td><td class="r num">'+rs(x.b.amount)+'</td><td class="r num"><b>'+rs(x.pend)+'</b></td><td>'+dueText(x,to)+'</td></tr>').join('')+
+    '</tbody><tfoot><tr><td colspan="4">Total of pending bills</td><td class="r num">'+rs(st.pending.reduce((a,x)=>a+x.pend,0))+'</td><td></td></tr></tfoot></table></div>'+
+    (Math.abs(st.onAcc)>.5?'<p class="onacc">Plus '+rs(st.onAcc)+' not linked to any bill (on account or advance). Total balance: '+rs(st.close)+'.</p>':'');
+}
+function renderDrawer(){
+  const st=S.st[S.open];if(!st)return;const p=st.p;
+  $('dName').textContent=p.name;
+  $('dMeta').textContent=[p.group,p.city,p.credit?p.credit+' days credit':'',p.gstin?'GSTIN '+p.gstin:'',p.mobile?'Mobile '+p.mobile:''].filter(Boolean).join(', ');
+  $('dBal').innerHTML='<div class="main '+(p.side==='dr'?'recv':'pay')+'"><div class="k">'+(p.side==='dr'?'Owes you':'You owe')+' as on '+fmtDate(S.to)+'</div><div class="v num">'+rs(Math.max(0,st.close))+'</div></div>'+
+    '<div><div class="k">Overdue</div><div class="v num" style="color:'+(st.overdue>0?'var(--pay)':'inherit')+'">'+rs(st.overdue)+'</div></div>'+
+    '<div><div class="k">Billed in period</div><div class="v num">'+rs(st.billed)+'</div></div><div><div class="k">'+(p.side==='dr'?'Received':'Paid')+' in period</div><div class="v num">'+rs(st.credited)+'</div></div>';
+  $('dActions').innerHTML=(p.side==='dr'&&st.close>.5?'<button class="btn primary" data-act="remind">Reminder message</button>':'')+(p.side==='dr'?'<button class="btn" data-act="preview">See customer view</button>':'');
+  document.querySelectorAll('.dtabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.dtab===S.dtab));
+  const body=$('dBody');
+  if(S.dtab==='pending')body.innerHTML=pendingTable(st,S.to);
+  else if(S.dtab==='stmt')body.innerHTML=stmtTable(st,S.from,S.to,p,false);
+  else body.innerHTML=st.inPeriod.length?'<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Voucher no.</th><th>Bills</th><th class="r">Amount</th></tr></thead><tbody>'+
+    st.inPeriod.slice().reverse().map(e=>'<tr><td>'+fmtDate(e.date)+'</td><td><span class="tag '+(e.delta>0?'bill':'pay')+'">'+esc(e.type)+'</span></td><td>'+esc(e.no)+'</td><td class="narr">'+(e.allocs.map(a=>esc(a.type)+' '+esc(a.ref)).join(', ')||'–')+'</td><td class="r num">'+(e.delta>0?'+':'−')+rs(Math.abs(e.delta))+'</td></tr>').join('')+'</tbody></table></div>'
+    :'<div class="empty">No entries between '+fmtDate(S.from)+' and '+fmtDate(S.to)+'.</div>';
+}
+let lastFocus=null;
+function openDrawer(id){lastFocus=document.activeElement;S.open=id;S.dtab='pending';renderDrawer();$('drawer').classList.add('on');$('scrim').classList.add('on');$('drawer').setAttribute('aria-hidden','false');$('dBody').scrollTop=0;setTimeout(()=>$('dClose').focus(),50)}
+function closeDrawer(){S.open=null;$('drawer').classList.remove('on');$('scrim').classList.remove('on');$('drawer').setAttribute('aria-hidden','true');if(lastFocus)lastFocus.focus()}
+function openReminder(){
+  const st=S.st[S.open],co=CONF.company_name||D.company;
+  const lines=st.pending.map(x=>'• '+x.b.ref+' dated '+fmtDate(x.b.date)+': '+rs(x.pend)+(x.od>0?' (overdue by '+x.od+' days)':'')).join('\n');
+  $('mText').value='Dear '+st.p.name+',\n\nThis is a gentle reminder that '+rs(st.close)+' is outstanding in our books as on '+fmtDate(S.to)+(lines?', against these bills:\n\n'+lines:'.')+'\n\nKindly arrange the payment at the earliest. Please ignore this message if already paid.\n\nRegards,\n'+co;
+  $('mCopied').textContent='';$('modal').classList.add('on');$('mText').focus();
+}
+async function copyReminder(){const t=$('mText');try{await navigator.clipboard.writeText(t.value);$('mCopied').textContent='Copied'}catch(e){t.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}$('mCopied').textContent=ok?'Copied':'Text selected, press Ctrl+C'}}
+
+/* ---------- customer view ---------- */
+function renderCustomer(){
+  const p=D.P[S.cust],el=$('cust');if(!p){el.innerHTML='<div class="empty">No customers found.</div>';return}
+  const co=CONF.company_name||D.company,st=partyState(p,S.cFrom,S.cTo);
+  const next=st.pending.filter(x=>x.od===0).sort((a,b)=>a.due-b.due)[0];
+  let h='<div class="ptop"><div class="brand"><div class="mark" aria-hidden="true">₹</div><div><h1>'+esc(co)+'</h1><p>Customer account</p></div></div><div class="who"><b>'+esc(p.name)+'</b>'+esc(p.city||'')+'</div></div>';
+  h+='<div class="banner info"><b>Preview</b>This is what '+esc(p.name)+' would see after logging in to the online customer portal. They would only ever see their own account.</div>';
+  h+='<section class="duecard"><div class="k">Amount due to '+esc(co)+' as on '+fmtDate(S.cTo)+'</div><div class="amt num">'+rs(Math.max(0,st.close))+'</div><div class="duefacts"><span>Overdue: <b class="num" style="color:'+(st.overdue>0?'var(--pay)':'inherit')+'">'+rs(st.overdue)+'</b></span><span>Pending bills: <b>'+st.pending.length+'</b></span>'+(next?'<span>Next due: <b>'+rs(next.pend)+'</b> on '+fmtDate(next.due)+'</span>':'')+'</div>';
+  if(CONF.bank_details){h+='<div class="dactions"><button class="btn primary" data-c="pay">'+(S.payOpen?'Hide payment details':'How to pay')+'</button></div>';if(S.payOpen)h+='<div class="paybox">'+esc(CONF.bank_details)+'</div>'}
+  h+='</section>';
+  const tabs=[['pending','Bills to pay'],['bills','All bills'],['pays','Payments'],['stmt','Statement']];
+  h+='<div class="ptools"><div class="tabs" role="tablist">'+tabs.map(t=>'<button role="tab" data-ctab="'+t[0]+'" aria-selected="'+(S.cTab===t[0])+'">'+t[1]+'</button>').join('')+'</div><select class="tool-select" id="cPreset" aria-label="Period">'+
+    [['fy','This financial year'],['lfy','Last financial year'],['tm','This month'],['l30','Last 30 days'],['all','All data']].map(o=>'<option value="'+o[0]+'"'+(S.cPreset===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></div>';
+  if(S.cTab==='pending')h+=pendingTable(st,S.cTo);
+  else if(S.cTab==='bills'){const bl=D.billsBy[p.id].filter(b=>b.date>=S.cFrom&&b.date<=S.cTo&&b.amount>0).map(b=>billInfo(b,S.cTo)).reverse();
+    h+='<div class="tablewrap"><table><thead><tr><th>Bill date</th><th>Bill no.</th><th class="r">Amount</th><th class="r">Paid</th><th class="r">Due</th><th>Status</th></tr></thead><tbody>'+(bl.length?bl.map(x=>'<tr><td>'+fmtDate(x.b.date)+'</td><td>'+esc(x.b.ref)+'</td><td class="r num">'+rs(x.b.amount)+'</td><td class="r num">'+rs(x.adj)+'</td><td class="r num"><b>'+rs(Math.max(0,x.pend))+'</b></td><td>'+(x.status==='paid'?'<span class="st paid">Paid</span>':x.status==='od'?'<span class="st od">Overdue</span>':x.status==='part'?'<span class="st part">Partly paid</span>':'<span class="st unpaid">Not due yet</span>')+'</td></tr>').join(''):'<tr><td colspan="6" class="empty">No bills in this period.</td></tr>')+'</tbody></table></div>'}
+  else if(S.cTab==='pays'){const pl=st.inPeriod.filter(e=>e.delta<0).reverse();
+    h+='<div class="tablewrap"><table><thead><tr><th>Date</th><th>Receipt no.</th><th>Type</th><th>Adjusted against</th><th class="r">Amount</th></tr></thead><tbody>'+(pl.length?pl.map(e=>'<tr><td>'+fmtDate(e.date)+'</td><td>'+esc(e.no)+'</td><td>'+esc(e.type)+'</td><td class="narr">'+(e.allocs.filter(a=>a.type.toLowerCase()==='agst ref').map(a=>esc(a.ref)).join(', ')||'On account')+'</td><td class="r num" style="color:var(--recv)">'+rs(-e.delta)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">No payments in this period.</td></tr>')+'</tbody></table></div>'}
+  else h+=stmtTable(st,S.cFrom,S.cTo,p,true);
+  h+='<p class="foot-note">Balances are as per the books of '+esc(co)+'. If anything looks wrong, please contact us.</p>';
+  el.innerHTML=h;
+}
+
+/* ---------- screens & sync ---------- */
+function showScreen(){
+  const has=!!D,fs=!!S.forceSettings&&!has;
+  $('setup').hidden=has||fs;$('rolebar').hidden=!has;
+  $('adminApp').hidden=!(has||fs)||S.role!=='admin';$('customerApp').hidden=!has||S.role!=='customer';
+  document.querySelector('#adminApp .nav').hidden=fs;document.querySelector('#adminApp .period').hidden=fs;
+  if(fs){$('syncText').textContent='Not synced yet';if(S.view!=='settings')setView('settings')}
+  $('asCustomer').hidden=S.role!=='customer';
+}
+function setView(v){if(v==='logins'&&!LG.loaded&&!LG.loading)loadLogins();if(v==='settings')loadSettings();S.view=v;document.querySelectorAll('.nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));document.querySelectorAll('.view').forEach(el=>el.hidden=el.dataset.view!==v)}
+function setRole(r){
+  S.role=r;document.querySelectorAll('.role button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.role===r));
+  if(r==='customer'){closeDrawer();if(!S.cust||!D.P[S.cust]){const c=D.parties.filter(p=>p.side==='dr').sort((a,b)=>a.name.localeCompare(b.name))[0];S.cust=c?c.id:null}$('asCustomer').value=S.cust||'';S.cTab='pending';S.payOpen=false;renderCustomer()}
+  showScreen();window.scrollTo(0,0);
+}
+function fillCustomerSelect(){
+  $('asCustomer').innerHTML=D.parties.filter(p=>p.side==='dr').sort((a,b)=>a.name.localeCompare(b.name)).map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join('');
+}
+function syncInputs(){$('preset').value=S.preset;$('from').value=toISO(S.from);$('to').value=toISO(S.to);if(D){$('from').min=$('to').min=toISO(D.minDay)}}
+function setSyncUI(status){
+  const dot=$('syncDot'),t=$('syncText');
+  dot.className='dot';
+  if(status.syncing){dot.classList.add('run');t.textContent='Syncing with Tally…';$('syncBtn').disabled=true}
+  else{$('syncBtn').disabled=false;
+    if(status.last_error){dot.classList.add('bad');t.textContent='Last sync failed'}
+    else if(D&&D.source==='sample'){t.textContent='Sample data'}
+    else if(D){dot.classList.add('ok');const s=new Date(D.syncedAt);t.textContent='Synced '+s.toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}}
+  const eb=$('errBanner');
+  if(status.last_error&&!status.syncing){eb.hidden=false;eb.innerHTML='<b>Could not sync with Tally</b>'+esc(status.last_error)+(D?'<br>The app is showing the data from the last successful sync.':'')}else eb.hidden=true;
+}
+async function getStatus(){try{const r=await fetch('/api/status');return await r.json()}catch(e){return {last_error:'The app server is not running. Start it again with Start-App.',syncing:false,log:[]}}}
+async function loadData(){try{const r=await fetch('/api/data');if(!r.ok)return false;load(await r.json());return true}catch(e){return false}}
+async function refresh(){
+  const status=await getStatus();CONF=status;
+  const had=D&&D.syncedAt;const ok=await loadData();
+  if(ok){if(!had)fillCustomerSelect();else if(had!==D.syncedAt)fillCustomerSelect();syncInputs();renderAll()}
+  showScreen();setSyncUI(status);
+  if(!D){$('setupLog').hidden=!(status.log&&status.log.length);$('setupLog').textContent=(status.log||[]).join('\n');
+    const se=$('setupErr');se.hidden=!status.last_error;se.innerHTML=status.last_error?'<b>Could not sync with Tally</b>'+esc(status.last_error):'';
+    $('setupSync').disabled=!!status.syncing;$('setupSync').textContent=status.syncing?'Syncing…':'Sync from Tally now';$('setupSample').hidden=!status.sample_available}
+  return status;
+}
+async function doSync(){
+  $('syncBtn').disabled=true;$('setupSync').disabled=true;setSyncUI({syncing:true});
+  const poll=setInterval(refresh,2500);
+  try{await fetch('/api/sync',{method:'POST'})}catch(e){}
+  clearInterval(poll);await refresh();
+}
+async function useSample(){await fetch('/api/use-sample',{method:'POST'});await refresh()}
+
+/* ---------- events ---------- */
+$('syncBtn').addEventListener('click',doSync);$('setupSync').addEventListener('click',doSync);$('setupSample').addEventListener('click',useSample);
+$('setupSettings').addEventListener('click',()=>{S.forceSettings=true;showScreen()});
+$('preset').addEventListener('change',e=>{S.preset=e.target.value;const r=range(S.preset);if(r)[S.from,S.to]=r;syncInputs();renderAll()});
+function onDate(){const f=$('from').value,t=$('to').value;if(!f||!t)return;let a=toDay(f),b=toDay(t);if(a>b)[a,b]=[b,a];S.from=a;S.to=b;S.preset='custom';syncInputs();renderAll()}
+$('from').addEventListener('change',onDate);$('to').addEventListener('change',onDate);
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+document.querySelectorAll('#partyTabs button').forEach(b=>b.addEventListener('click',()=>{S.tab=b.dataset.tab;document.querySelectorAll('#partyTabs button').forEach(x=>x.setAttribute('aria-selected',x===b));renderAgeingStrip();renderRows()}));
+document.querySelectorAll('#ageTabs button').forEach(b=>b.addEventListener('click',()=>{S.agTab=b.dataset.tab;document.querySelectorAll('#ageTabs button').forEach(x=>x.setAttribute('aria-selected',x===b));renderAgeingView()}));
+$('search').addEventListener('input',e=>{S.search=e.target.value;renderRows()});
+$('sort').addEventListener('change',e=>{S.sort=e.target.value;renderRows()});
+$('odOnly').addEventListener('change',e=>{S.odOnly=e.target.checked;renderRows()});
+$('hideZero').addEventListener('change',e=>{S.hideZero=e.target.checked;renderRows()});
+[['bSide',renderBills],['bStatus',renderBills],['bSort',renderBills],['mSide',renderMoney],['mType',renderMoney]].forEach(([id,fn])=>$(id).addEventListener('change',e=>{S[id]=e.target.value;fn()}));
+$('bSearch').addEventListener('input',e=>{S.bSearch=e.target.value;renderBills()});
+$('mSearch').addEventListener('input',e=>{S.mSearch=e.target.value;renderMoney()});
+document.querySelector('#adminApp').addEventListener('click',e=>{
+  const g=e.target.closest('[data-goto]');if(g){setView(g.dataset.goto);window.scrollTo(0,0);return}
+  const p=e.target.closest('[data-party]');if(p)openDrawer(p.dataset.party);
+});
+document.querySelector('#adminApp').addEventListener('keydown',e=>{if(e.key==='Enter'){const t=e.target.closest('tr[data-party]');if(t)openDrawer(t.dataset.party)}});
+$('dClose').addEventListener('click',closeDrawer);$('scrim').addEventListener('click',closeDrawer);
+document.querySelectorAll('.dtabs button').forEach(b=>b.addEventListener('click',()=>{S.dtab=b.dataset.dtab;renderDrawer();$('dBody').scrollTop=0}));
+$('dActions').addEventListener('click',e=>{const a=e.target.closest('[data-act]');if(!a)return;if(a.dataset.act==='remind')openReminder();else{S.cust=S.open;setRole('customer')}});
+$('mClose').addEventListener('click',()=>$('modal').classList.remove('on'));$('mCopy').addEventListener('click',copyReminder);
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').classList.remove('on')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('modal').classList.contains('on'))$('modal').classList.remove('on');else if(S.open)closeDrawer()}});
+document.querySelectorAll('.role button').forEach(b=>b.addEventListener('click',()=>setRole(b.dataset.role)));
+$('asCustomer').addEventListener('change',e=>{S.cust=e.target.value;S.cTab='pending';S.payOpen=false;renderCustomer()});
+$('cust').addEventListener('click',e=>{const t=e.target.closest('[data-ctab]');if(t){S.cTab=t.dataset.ctab;renderCustomer();return}if(e.target.closest('[data-c="pay"]')){S.payOpen=!S.payOpen;renderCustomer()}});
+$('cust').addEventListener('change',e=>{if(e.target.id==='cPreset'){S.cPreset=e.target.value;[S.cFrom,S.cTo]=range(S.cPreset);renderCustomer()}});
+
+
+/* ---------- customer links ---------- */
+const LG={loaded:false,loading:false,admin:'',list:[],website:'',api:'',pkey:'',err:'',q:'',busy:{}};
+async function postJSON(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});const j=await r.json().catch(()=>({ok:false,message:'No answer from the app.'}));if(!j.ok)throw new Error(j.message||'Something went wrong.');return j}
+async function loadLogins(){LG.loading=true;renderLogins();try{const j=await postJSON('/api/portal/links');LG.admin=j.admin||'';LG.list=j.customers||[];LG.website=j.website||'';LG.api=j.api||'';LG.pkey=j.pkey||'';LG.err='';LG.loaded=true}catch(e){LG.err=e.message}LG.loading=false;renderLogins()}
+function siteBase(){const w=(LG.website||'').trim();return w&&!w.includes('yourname')?w.replace(/#.*$/,'').replace(/\/?$/,'/'):''}
+function linkTail(){const m=/^https:\/\/([a-z0-9]+)\.supabase\.co$/i.exec(LG.api);return (m?'&s='+m[1].toLowerCase():'&u='+encodeURIComponent(LG.api))+'&p='+encodeURIComponent(LG.pkey)}
+function linkOf(tok){const b=siteBase();return b&&tok&&LG.api&&LG.pkey?b+'#k='+tok+linkTail():''}
+function linkMsg(name,link){
+  const co=CONF.company_name||D.company;
+  return 'Hello '+name+',\n\nHere is your account with '+co+'. Tap the link to see your bills, payments and statement at any time:\n'+link+
+    '\n\nTip: after it opens, tap "Install" (Android) or Share > "Add to Home Screen" (iPhone) to keep it as an app.\nThis link is only for you. Please do not forward it.';
+}
+function waUrl(phone,msg){return (phone?'https://wa.me/'+phone.replace(/\D/g,''):'https://wa.me/')+'?text='+encodeURIComponent(msg)}
+async function copyText(t,btn){try{await navigator.clipboard.writeText(t);if(btn)btn.textContent='Copied'}catch(_){prompt('Copy this:',t)}}
+function renderLogins(){
+  const el=$('lgBody');if(!el||!D)return;
+  if(!CONF.portal_enabled){el.innerHTML='<div class="banner info"><b>The online portal is off</b>Turn on "Upload to the online portal" in Settings, fill in the Supabase details, and save.</div>';return}
+  if(LG.loading&&!LG.loaded){el.innerHTML='<div class="empty">Loading links from Supabase…</div>';return}
+  let h='';
+  if(LG.err)h+='<div class="banner err"><b>Problem with the portal</b>'+esc(LG.err)+'</div>';
+  if(!siteBase())h+='<div class="banner info"><b>Add your portal address</b>Put your GitHub Pages address in Settings → "Portal website address" and save. Links can be made once it is set.</div>';
+  else if(!LG.pkey)h+='<div class="banner info"><b>Add the publishable key</b>Put your Supabase publishable key in Settings and save. Links can be made once it is set.</div>';
+  else if(LG.loaded&&!LG.admin&&!LG.list.length)h+='<div class="banner info"><b>Nothing online yet</b>Go to Settings and press "Upload to portal now". Links are made during the upload.</div>';
+  const ownerLink=linkOf(LG.admin);
+  h+='<section class="card"><div class="card-head"><h3>Your owner link</h3></div><p class="onacc" style="margin:0 0 10px">Opens the owner view on any phone or computer: all customers, their links, payments reported, settings and full reports. Keep it private, like a password.</p>'+
+    (ownerLink?'<div class="btnrow"><a class="btn primary" href="'+esc(ownerLink)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Open owner view</a><button class="btn" data-lgcopyowner="1">Copy owner link</button><a class="btn" href="'+esc(waUrl('', 'My owner link for the customer portal (keep private):\n'+ownerLink))+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Send to myself on WhatsApp</a><button class="btn" data-lgowner="1">New owner link</button></div>':'<p class="onacc">Not made yet. It is made the first time you upload to the portal.</p>')+'</section>';
+  const q=LG.q.trim().toLowerCase();
+  const rows=LG.list.filter(c=>!q||(c.name+' '+c.phone).toLowerCase().includes(q));
+  h+='<div class="bar"><input class="search" id="lgQ" type="search" placeholder="Search customer or mobile" value="'+esc(LG.q)+'"><button class="btn" data-lg="reload">Refresh</button></div>';
+  h+='<div class="tablewrap"><table><thead><tr><th>Customer</th><th>Mobile</th><th>Access</th><th></th></tr></thead><tbody>'+
+    (rows.length?rows.map(c=>{const link=linkOf(c.token),busy=LG.busy[c.ckey];
+      return '<tr><td class="party"><b>'+esc(c.name)+'</b></td><td>'+(c.phone?esc(c.phone):'<span class="ok">None</span>')+'</td><td>'+(c.enabled?'<span class="okc">On</span>':'<span class="badc">Off</span>')+'</td><td style="text-align:right;white-space:nowrap">'+
+        (busy?'<span class="ok">Working…</span>':link?'<a class="btn sm primary" href="'+esc(waUrl(c.phone,linkMsg(c.name,link)))+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Send on WhatsApp</a> <button class="btn sm" data-lgcopy="'+esc(c.ckey)+'">Copy link</button> <button class="btn sm" data-lgnew="'+esc(c.ckey)+'">New link</button>':'<span class="ok">'+(c.token?'Add portal address':'Upload first')+'</span>')+'</td></tr>'}).join(''):'<tr><td colspan="4" class="empty">No customers online yet.</td></tr>')+
+    '</tbody></table></div>';
+  h+='<p class="foot-note">Each customer\'s link opens only their own account, with no password. New link stops the old link working at once (use it if a link was forwarded). Customers without a mobile number can still get a link: WhatsApp will ask you to pick the contact. Switch access on or off in the owner view.</p>';
+  el.innerHTML=h;
+}
+document.querySelector('#adminApp').addEventListener('click',async e=>{
+  const cp=e.target.closest('[data-lgcopy]');
+  if(cp){const c=LG.list.find(x=>x.ckey===cp.dataset.lgcopy);return copyText(linkOf(c.token),cp)}
+  if(e.target.closest('[data-lgcopyowner]'))return copyText(linkOf(LG.admin),e.target.closest('[data-lgcopyowner]'));
+  const nw=e.target.closest('[data-lgnew]');
+  if(nw){const k=nw.dataset.lgnew,c=LG.list.find(x=>x.ckey===k);if(!confirm('Make a new link for '+c.name+'? Their old link stops working at once, and you will need to send the new one.'))return;
+    LG.busy[k]=true;renderLogins();try{const j=await postJSON('/api/portal/newlink',{ckey:k});c.token=j.token;LG.err=''}catch(err){LG.err=err.message}delete LG.busy[k];renderLogins();return}
+  if(e.target.closest('[data-lgowner]')){if(!confirm('Make a new owner link? The old owner link stops working on every phone where it was opened.'))return;
+    try{const j=await postJSON('/api/portal/newlink',{admin:true});LG.admin=j.token;LG.err=''}catch(err){LG.err=err.message}renderLogins();return}
+  const a=e.target.closest('[data-lg]');if(a&&a.dataset.lg==='reload')loadLogins();
+});
+document.querySelector('#adminApp').addEventListener('input',e=>{if(e.target.id==='lgQ'){LG.q=e.target.value;const pos=e.target.selectionStart;renderLogins();const q=$('lgQ');q.focus();q.setSelectionRange(pos,pos)}});
+/* ---------- settings ---------- */
+const ST={cfg:null,msg:'',err:'',busy:''};
+async function loadSettings(){try{const r=await fetch('/api/config');ST.cfg=await r.json()}catch(e){ST.err='Could not load settings.'}renderSettings()}
+function fld(k,label,hint,type){const v=ST.cfg[k];
+  if(type==='bool')return '<label class="tick"><input type="checkbox" data-k="'+k+'"'+(v?' checked':'')+'>'+label+'</label>';
+  if(type==='area')return '<label class="full">'+label+'<textarea data-k="'+k+'">'+esc(v)+'</textarea>'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>';
+  return '<label'+(type==='wide'?' class="full"':'')+'>'+label+'<input type="'+(type==='num'?'number':'text')+'" data-k="'+k+'" value="'+esc(Array.isArray(v)?v.join(', '):v)+'">'+(hint?'<span class="hint">'+hint+'</span>':'')+'</label>'}
+function renderSettings(){
+  const el=$('stBody');if(!el)return;
+  if(!ST.cfg){el.innerHTML='<div class="empty">'+(ST.err||'Loading settings…')+'</div>';return}
+  const c=ST.cfg;let h='';
+  if(ST.err)h+='<div class="banner err"><b>Not saved</b>'+esc(ST.err)+'</div>';
+  if(ST.msg)h+='<div class="banner info">'+esc(ST.msg)+'</div>';
+  h+='<section class="card"><div class="card-head"><h3>Tally connection</h3></div><div class="sform">'+
+    fld('tally_url','Tally address','Usually http://localhost:9000. Use the port set in Tally (F1 → Settings → Connectivity).')+
+    fld('tally_company','Company name in Tally','Only if more than one company is open. Leave empty to use the open company.')+
+    fld('auto_sync_minutes','Read Tally every (minutes)','0 turns automatic syncing off.','num')+
+    fld('read_from_date','Read from date (optional)','For example 2025-04-01. Empty means from the start of the books.')+
+    '</div><div class="dactions"><button class="btn" data-st="sync">Test connection and sync now</button></div></section>';
+  h+='<section class="card"><div class="card-head"><h3>Your company</h3></div><div class="sform">'+
+    fld('your_company_name','Company name to show','Empty uses the name from Tally.','wide')+
+    fld('bank_details','How customers can pay (bank and UPI details)','Shown to customers under "How to pay".','area')+'</div></section>';
+  h+='<section class="card"><div class="card-head"><h3>Online customer portal</h3></div><div class="sform">'+
+    fld('portal_enabled','Upload to the online portal after every sync','', 'bool')+'<span></span>'+
+    fld('supabase_url','Supabase project URL','Looks like https://abcdefgh.supabase.co','wide')+
+    fld('supabase_publishable_key','Supabase publishable key','Starts with sb_publishable_ (or the older "anon" key). Goes into the customer links.','wide')+
+    '<label class="full">Supabase secret key<input type="password" data-k="supabase_secret_key" autocomplete="off" placeholder="'+(c.secret_key_set?'Saved (ends '+esc(c.secret_key_hint)+'). Leave empty to keep it.':'Paste the secret key (sb_secret_…) here')+'"><span class="hint">Kept only on this computer. Never put it in the website.</span></label>'+
+    fld('portal_website_url','Portal website address','Your GitHub Pages address, for example https://yourname.github.io/customer-portal/','wide')+
+    fld('portal_history_months','Months of history customers can see','Unpaid older bills are always included.','num')+
+    fld('portal_show_narration','Show Tally narrations to customers','', 'bool')+
+    '</div><div class="dactions"><button class="btn" data-st="upload">Upload to portal now</button></div></section>';
+  h+='<section class="card"><div class="card-head"><h3>App</h3></div><div class="sform">'+
+    fld('app_port','App port','Change only if 8050 is used by another program. Needs a restart.','num')+
+    fld('open_on_other_computers','Let other office computers open the app','', 'bool')+
+    '</div><p class="onacc">Settings and data are kept in: <b>'+esc(c.config_folder)+'</b></p>'+
+    (c.installed_app?'<div class="dactions"><button class="btn" data-st="quit">Close the app completely</button><span class="onacc" style="align-self:center">Stops background syncing until you open the app again.</span></div>':'')+'</section>';
+  h+='<div class="savebar">'+(!D?'<button class="btn" data-st="back">Back</button>':'')+'<button class="btn primary" data-st="save"'+(ST.busy?' disabled':'')+'>'+(ST.busy==='save'?'Saving…':'Save settings')+'</button>'+(ST.busy&&ST.busy!=='save'?'<span class="onacc">Working…</span>':'')+'</div>';
+  el.innerHTML=h;
+}
+function collect(){const b={};document.querySelectorAll('#stBody [data-k]').forEach(i=>{b[i.dataset.k]=i.type==='checkbox'?i.checked:(i.type==='number'?Number(i.value):i.value)});return b}
+document.querySelector('#adminApp').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-st]');if(!b)return;const a=b.dataset.st;ST.msg='';ST.err='';
+  if(a!=='save'&&ST.cfg&&$('stBody').querySelector('[data-k]')){const keep=collect();delete keep.supabase_secret_key;ST.cfg={...ST.cfg,...keep}}
+  if(a==='save'){const body=collect();ST.cfg={...ST.cfg,...body,supabase_secret_key:''};ST.busy='save';renderSettings();
+    try{const r=await fetch('/api/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json();if(!j.ok)throw new Error(j.message);ST.cfg=j.config;ST.msg='Settings saved.';const s=await getStatus();CONF=s;if(D)renderHeader()}
+    catch(err){ST.err=err.message}ST.busy='';renderSettings();return}
+  if(a==='sync'){ST.busy='sync';renderSettings();await doSync();ST.busy='';ST.msg=CONF.last_error?'':'Synced with Tally.';ST.err=CONF.last_error||'';renderSettings();return}
+  if(a==='back'){S.forceSettings=false;showScreen();await refresh();return}
+  if(a==='upload'){ST.busy='upload';renderSettings();try{const j=await postJSON('/api/portal/upload');ST.msg=j.message+' Open the Customer links tab to send links.';LG.loaded=false}catch(err){ST.err=err.message}ST.busy='';renderSettings();return}
+  if(a==='quit'){if(!confirm('Close the app? Syncing with Tally stops until you open it again.'))return;try{await fetch('/api/quit',{method:'POST'})}catch(_){}document.body.innerHTML='<div class="setup"><h2>The app is closed</h2><p>Open it again from the desktop icon or Start menu. You can close this window.</p></div>'}
+});
+
+/* ---------- start ---------- */
+(async function start(){
+  let status=await refresh();
+  setInterval(async()=>{const before=D&&D.syncedAt;const s=await getStatus();CONF=s;if(s.syncing||!D||(s.last_sync&&s.last_sync!==before))await refresh();else setSyncUI(s)},30000);
+})();
+})();
+</script>
+</body>
+</html>

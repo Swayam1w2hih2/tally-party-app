@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#14202E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Account">
+<title>Customer account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Schibsted+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+
+
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --surface-2:#F6F8FA; --ink:#14202E; --muted:#5B6878; --line:#D6DCE3;
+  --recv:#13795B; --recv-soft:#DDF1E8; --pay:#B42345; --pay-soft:#F8E1E6; --accent:#2952CC; --accent-soft:#E3EAFB; --warn:#9A5B00;
+  --age1:#7FB89E; --age2:#E2B84A; --age3:#E0803A; --age4:#B42345;
+  --shadow:0 1px 2px rgba(20,32,46,.06),0 8px 24px rgba(20,32,46,.06);
+  --font-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Schibsted Grotesk","IBM Plex Sans",system-ui,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1620; --surface:#17212D; --surface-2:#1C2836; --ink:#E6ECF2; --muted:#93A1B1; --line:#2A3746;
+    --recv:#3CC48E; --recv-soft:#133528; --pay:#F06A86; --pay-soft:#3A1822; --accent:#7C9BFF; --accent-soft:#1E2A4A; --warn:#E7A644;
+    --age1:#4E9C7C; --age2:#C9A33E; --age3:#D2753A; --age4:#E0577A;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1620; --surface:#17212D; --surface-2:#1C2836; --ink:#E6ECF2; --muted:#93A1B1; --line:#2A3746;
+  --recv:#3CC48E; --recv-soft:#133528; --pay:#F06A86; --pay-soft:#3A1822; --accent:#7C9BFF; --accent-soft:#1E2A4A; --warn:#E7A644;
+  --age1:#4E9C7C; --age2:#C9A33E; --age3:#D2753A; --age4:#E0577A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 48px}
+
+/* Top bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:36px;height:36px;border-radius:9px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-family:var(--font-head);font-weight:800;font-size:17px}
+.brand h1{font-family:var(--font-head);font-size:19px;margin:0;line-height:1.15;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+.sync{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--surface);border:1px solid var(--line);padding:6px 12px;border-radius:999px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--warn)}
+
+/* Period bar */
+.period{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;color:var(--muted);font-weight:500}
+.field select,.field input{height:38px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:0 10px;min-width:0}
+.period .grow{flex:1}
+.period .asof{font-size:13px;color:var(--muted);align-self:center}
+
+/* Hero: the balance beam */
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 22px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+.hero-row{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end}
+.side h2{margin:0 0 2px;font-size:14px;font-weight:500;color:var(--muted)}
+.side .big{font-family:var(--font-head);font-size:clamp(26px,4.4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.side.recv .big{color:var(--recv)}
+.side.pay{text-align:right}
+.side.pay .big{color:var(--pay)}
+.side .sub{font-size:13px;color:var(--muted);margin-top:4px}
+.net{text-align:center;padding-bottom:4px}
+.net small{display:block;font-size:12px;color:var(--muted)}
+.net strong{font-family:var(--font-head);font-size:18px}
+.beam{position:relative;height:14px;border-radius:7px;overflow:hidden;display:flex;margin-top:18px;background:var(--line)}
+.beam span{display:block;height:100%;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.beam .r{background:var(--recv)}
+.beam .p{background:var(--pay)}
+.beam-mid{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.35}
+.hero-foot{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:8px;gap:12px}
+
+/* Tabs + tools */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:12px}
+.tabs{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{border:0;background:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:500;color:var(--muted)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.search{flex:1;min-width:180px;height:38px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 12px}
+.tool-select{height:38px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 10px}
+.chk{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);cursor:pointer;user-select:none}
+.chk input{width:16px;height:16px;accent-color:var(--accent)}
+
+/* Ageing */
+.ageing{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.ageing-head{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);margin-bottom:8px}
+.ageing-head strong{color:var(--ink);font-weight:600}
+.agebar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line)}
+.agebar span{height:100%}
+.agelegend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.agelegend div{font-size:12px;color:var(--muted)}
+.agelegend b{display:block;font-size:14px;color:var(--ink);font-weight:600}
+.agelegend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
+
+/* Party list */
+.list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.prow,.phead{display:grid;grid-template-columns:minmax(0,1fr) 80px 130px 140px 150px;gap:12px;align-items:center;padding:12px 16px}
+.phead{font-size:12px;color:var(--muted);font-weight:500;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.phead span:not(:first-child),.prow .num{text-align:right}
+.prow{width:100%;border:0;background:none;text-align:left;cursor:pointer;border-bottom:1px solid var(--line)}
+.prow:last-child{border-bottom:0}
+.prow:hover{background:var(--surface-2)}
+.pname strong{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pname small{color:var(--muted);font-size:13px}
+.od{color:var(--pay);font-weight:500}
+.od.zero{color:var(--muted);font-weight:400}
+.out{font-weight:600}
+.settled{color:var(--muted);font-weight:400}
+.empty{padding:36px 16px;text-align:center;color:var(--muted)}
+.foot-note{font-size:12px;color:var(--muted);margin-top:14px}
+
+/* Drawer */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(10,16,24,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;z-index:31;top:0;right:0;bottom:0;width:min(760px,100%);background:var(--bg);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column;box-shadow:-12px 0 40px rgba(0,0,0,.18);padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.drawer.on{transform:none}
+.dhead{padding:18px 20px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.dtop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.dtop h2{font-family:var(--font-head);font-size:22px;margin:0;line-height:1.2;letter-spacing:-.01em}
+.dmeta{color:var(--muted);font-size:13px;margin-top:2px}
+.close{border:1px solid var(--line);background:var(--surface-2);width:36px;height:36px;border-radius:9px;cursor:pointer;font-size:18px;flex:none}
+.dbal{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:14px;align-items:flex-end}
+.dbal .k{font-size:12px;color:var(--muted)}
+.dbal .v{font-family:var(--font-head);font-weight:700;font-size:18px}
+.dbal .main .v{font-size:28px;font-weight:800}
+.dbal .main.recv .v{color:var(--recv)}
+.dbal .main.pay .v{color:var(--pay)}
+.dactions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{height:36px;padding:0 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);cursor:pointer;font-weight:500}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.dtabs{display:flex;gap:4px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+.dtabs button{border:0;background:none;padding:11px 12px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+.dtabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.dbody{flex:1;overflow-y:auto;padding:18px 20px 28px}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:12px;color:var(--muted);font-weight:500;background:var(--surface-2)}
+td.r,th.r{text-align:right}
+tr:last-child td{border-bottom:0}
+tfoot td{font-weight:600;background:var(--surface-2)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;font-weight:500}
+.tag.bill{background:var(--accent-soft);color:var(--accent)}
+.tag.pay{background:var(--recv-soft);color:var(--recv)}
+.late{color:var(--pay);font-weight:500}
+.ok{color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.summary div{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.summary small{display:block;font-size:12px;color:var(--muted)}
+.summary b{font-size:16px}
+.narr{color:var(--muted);font-size:13px}
+
+/* Modal */
+.modal{position:fixed;inset:0;display:none;place-items:center;padding:20px;z-index:40;background:rgba(10,16,24,.35)}
+.modal.on{display:grid}
+.modal-card{background:var(--surface);border-radius:14px;width:min(560px,100%);padding:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.modal-card h3{margin:0 0 4px;font-family:var(--font-head);font-size:18px}
+.modal-card p{margin:0 0 12px;color:var(--muted);font-size:13px}
+.modal-card textarea{width:100%;min-height:240px;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:12px;font-size:14px;line-height:1.5;resize:vertical}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;align-items:center}
+.copied{font-size:13px;color:var(--recv);margin-right:auto}
+
+
+/* Section nav */
+.nav{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:16px;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav button{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:15px}
+.nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.view[hidden]{display:none}
+.summary.s4{grid-template-columns:repeat(4,1fr)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.grid2 .card{margin-bottom:0}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.card h3{font-family:var(--font-head);font-size:16px;margin:0}
+.link{border:0;background:none;color:var(--accent);cursor:pointer;font-size:13px;font-weight:500;padding:4px 0}
+.mini{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;cursor:pointer}
+.mini:first-child{border-top:0}
+.mini:hover strong{color:var(--accent)}
+.mini strong{display:block;font-weight:600;font-size:14px}
+.mini small{color:var(--muted);font-size:13px}
+.mini .num{text-align:right;font-weight:600}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--surface-2)}
+.st{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;font-weight:500}
+.st.paid{background:var(--recv-soft);color:var(--recv)}
+.st.part{background:var(--accent-soft);color:var(--accent)}
+.st.unpaid{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.st.od{background:var(--pay-soft);color:var(--pay)}
+td.party{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}.summary.s4{grid-template-columns:1fr 1fr}}
+
+
+.badge{display:inline-block;min-width:18px;padding:0 6px;border-radius:9px;background:var(--pay);color:#fff;font-size:11px;line-height:18px;text-align:center;margin-left:4px}.badge:empty{display:none}
+.btn.sm{height:30px;padding:0 10px;font-size:13px}
+.okc{color:var(--recv);font-weight:500}
+.installbar{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:0 0 14px;box-shadow:var(--shadow)}
+.installbar img{width:40px;height:40px;border-radius:10px;flex:none}
+.installbar .t{flex:1;font-size:14px}
+.installbar .t b{display:block}
+.installbar .t span{color:var(--muted);font-size:13px}
+.installbar .x{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px}
+
+/* ---- portal ---- */
+[hidden]{display:none!important}
+.pwrap{max-width:860px;margin:0 auto;padding:0 18px 48px}
+.awrap{max-width:1120px;margin:0 auto;padding:0 20px 48px}
+.ptop{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:18px 0 14px;flex-wrap:wrap}
+.who{font-size:13px;color:var(--muted);text-align:right}
+.who b{display:block;color:var(--ink);font-size:14px}
+.center{min-height:100vh;display:grid;place-items:center;padding:20px}
+.logincard{width:min(420px,100%);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow)}
+.logincard h1{font-family:var(--font-head);font-size:22px;margin:12px 0 4px}
+.logincard p{color:var(--muted);margin:0 0 18px;font-size:14px}
+.phone{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.phone span{padding:0 12px;display:grid;place-items:center;color:var(--muted);border-right:1px solid var(--line);font-weight:500}
+.phone input,.otp{flex:1;height:48px;border:0;background:transparent;padding:0 12px;font-size:18px;letter-spacing:.04em;min-width:0}
+.otp{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);text-align:center;letter-spacing:.4em;font-size:22px}
+.btn.wide{width:100%;height:46px;margin-top:12px;font-size:15px}
+.msg-err{color:var(--pay);font-size:14px;margin-top:10px;min-height:1em}
+.msg-ok{color:var(--muted);font-size:13px;margin-top:10px}
+.linkbtn{border:0;background:none;color:var(--accent);cursor:pointer;font-size:14px;padding:6px 0;font-weight:500}
+.linkbtn:disabled{color:var(--muted);cursor:default}
+.duecard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);margin-bottom:16px}
+.duecard .k{font-size:14px;color:var(--muted)}
+.duecard .amt{font-family:var(--font-head);font-weight:800;font-size:clamp(34px,7vw,48px);letter-spacing:-.02em;line-height:1.1;margin:2px 0 12px}
+.duefacts{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px}
+.paybox{margin-top:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:14px;font-size:14px;white-space:pre-line}
+.ptools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.tabs{overflow-x:auto;max-width:100%}
+.tabs button{white-space:nowrap}
+.onacc{font-size:13px;color:var(--muted);margin-top:8px}
+.notice{background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;white-space:pre-line}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
+.form input,.form select,.form textarea{height:40px;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:0 10px;width:100%;font-size:15px;color:var(--ink)}
+.form textarea{height:auto;min-height:90px;padding:10px;resize:vertical}
+.chkrow{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink)!important;flex-direction:row!important}
+.chkrow input{width:18px;height:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.panel h3{font-family:var(--font-head);font-size:16px;margin:0 0 10px}
+.switch input{width:18px;height:18px;accent-color:var(--recv);cursor:pointer}
+.banner{border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:14px;border:1px solid var(--line)}
+.banner.err{background:var(--pay-soft)}.banner.info{background:var(--accent-soft)}
+.banner b{display:block;margin-bottom:2px}
+.spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:760px){.form{grid-template-columns:1fr}.awrap{padding:0 14px 40px}}
+@media (max-width:760px){
+  .wrap{padding:0 14px 40px}
+  .hero{padding:18px 16px 14px}
+  .hero-row{grid-template-columns:1fr 1fr}
+  .net{grid-column:1/-1;order:3;text-align:left;padding:0}
+  .phead{display:none}
+  .prow{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"name out" "name od";row-gap:2px}
+  .prow .pname{grid-area:name}
+  .prow .c-out{grid-area:out}
+  .prow .c-od{grid-area:od;font-size:13px}
+  .prow .c-bills,.prow .c-billed{display:none}
+  .agelegend{grid-template-columns:repeat(2,1fr)}
+  .summary{grid-template-columns:1fr 1fr}
+  .period .grow{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+.who .btn{margin-top:2px}
+.modal-card textarea{min-height:200px}
+</style>
+</head>
+<body>
+
+<div id="installBar" class="installbar" hidden style="position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;max-width:520px;margin:0 auto">
+  <img src="icons/icon-192.png" alt="">
+  <div class="t" id="installText"><b>Install the app</b><span>Open your account in one tap from your home screen.</span></div>
+  <button class="btn primary sm" id="installBtn">Install</button>
+  <button class="x" id="installClose" aria-label="Not now">×</button>
+</div>
+
+<div id="boot" class="center"><div style="text-align:center;color:var(--muted)"><div class="spinner"></div>Loading…</div></div>
+
+<div id="msg" class="center" hidden>
+  <div class="logincard">
+    <div class="mark" aria-hidden="true">₹</div>
+    <h1 id="msgTitle"></h1>
+    <p id="msgText"></p>
+    <button class="btn primary wide" id="msgRetry" hidden>Try again</button>
+  </div>
+</div>
+
+<div id="main" hidden>
+  <div id="adminView" class="awrap" hidden></div>
+  <div id="custView" class="pwrap" hidden></div>
+</div>
+
+<div class="modal" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+  <div class="modal-card">
+    <h3 id="shTitle">Send link</h3>
+    <p id="shSub"></p>
+    <textarea id="shText" aria-label="Message"></textarea>
+    <div class="modal-actions">
+      <span class="copied" id="shCopied" role="status"></span>
+      <button class="btn" id="shClose">Close</button>
+      <button class="btn" id="shCopy">Copy message</button>
+      <a class="btn primary" id="shWa" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Send on WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+const COMPANY_NAME='Customer account';
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const DAY=86400000;
+const toDay=s=>Math.floor(Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10))/DAY);
+const toISO=d=>new Date(d*DAY).toISOString().slice(0,10);
+const fmtDate=d=>new Date(d*DAY).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
+const fmtTime=t=>t?new Date(t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'–';
+const inr=new Intl.NumberFormat('en-IN',{maximumFractionDigits:0});
+const rs=n=>(n<0?'−':'')+'₹'+inr.format(Math.abs(Math.round(n)));
+const compact=n=>{const a=Math.abs(n),s=n<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+' Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(2)+' L';return rs(n)};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now=new Date();
+const TODAY=Math.floor(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())/DAY);
+const FYY=now.getMonth()>=3?now.getFullYear():now.getFullYear()-1;
+const FYS=toDay(FYY+'-04-01');
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const ss={get(k){try{return sessionStorage.getItem(k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch(e){}}};
+function show(id){['boot','msg','main'].forEach(x=>$(x).hidden=x!==id)}
+function message(title,text,retry){$('msgTitle').textContent=title;$('msgText').innerHTML=text;$('msgRetry').hidden=!retry;show('msg')}
+function jwtRole(k){try{return JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role}catch(e){return null}}
+const SITE=location.origin+location.pathname.replace(/[^\/]*$/,'');
+
+/* ---------- the private link ----------
+   A link looks like  .../#k=<64-char code>&s=<supabase project>&p=<publishable key>
+   It is read once, saved on this phone, and removed from the address bar. */
+let TOKEN=null,API='',KEY='';
+(function(){
+  const q=new URLSearchParams((location.hash||'').replace(/^#/,''));
+  const k=q.get('k'),sref=q.get('s'),u=q.get('u'),pk=q.get('p');
+  if(k&&/^[0-9a-f]{40,128}$/i.test(k)){
+    ls.set('lpToken',k.toLowerCase());
+    if(sref&&/^[a-z0-9]{6,40}$/i.test(sref))ls.set('lpApi','https://'+sref.toLowerCase()+'.supabase.co');
+    else if(u&&/^https:\/\/[^\s"'<>]+$/i.test(u))ls.set('lpApi',u.replace(/\/+$/,''));
+    if(pk&&/^[A-Za-z0-9._-]{20,400}$/.test(pk))ls.set('lpKey',pk);
+    history.replaceState(null,'',location.pathname+location.search);
+  }
+  TOKEN=ls.get('lpToken');API=ls.get('lpApi')||'';KEY=ls.get('lpKey')||'';
+})();
+document.title=COMPANY_NAME;
+if(KEY&&(KEY.startsWith('sb_secret')||jwtRole(KEY)==='service_role')){
+  ls.del('lpKey');
+  message('This link is not safe','The link contains a secret key. Please ask the business to send a new link.');throw new Error('secret key in link');
+}
+
+/* ---------- talking to Supabase ---------- */
+async function rpc(fn,body){
+  const h={'Content-Type':'application/json','apikey':KEY};
+  if(KEY.startsWith('eyJ'))h.Authorization='Bearer '+KEY;
+  let r;
+  try{r=await fetch(API+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body:JSON.stringify(body||{})})}
+  catch(e){throw new Error('No internet connection. Please check and try again.')}
+  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null}catch(e){}
+  if(!r.ok)throw new Error((j&&j.message)||('Something went wrong ('+r.status+').'));
+  return j;
+}
+
+
+/* ---------- install as an app ---------- */
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+let installEvt=null;
+function showInstall(mode){
+  if(standalone||ls.get('installDismissed')||!TOKEN)return;
+  if(mode==='ios'){$('installText').innerHTML='<b>Add to your home screen</b><span>Tap the Share button, then "Add to Home Screen".</span>';$('installBtn').hidden=true}
+  $('installBar').hidden=false;
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;showInstall('prompt')});
+window.addEventListener('appinstalled',()=>{$('installBar').hidden=true;ls.set('installDismissed','1')});
+$('installBtn').addEventListener('click',async()=>{if(!installEvt)return;installEvt.prompt();const r=await installEvt.userChoice.catch(()=>null);installEvt=null;$('installBar').hidden=true;if(r&&r.outcome==='accepted')ls.set('installDismissed','1')});
+$('installClose').addEventListener('click',()=>{$('installBar').hidden=true;ls.set('installDismissed','1')});
+if(isIOS&&!standalone)setTimeout(()=>showInstall('ios'),2500);
+
+/* ---------- start ---------- */
+let SETTINGS={},CUST=null,CUSTNAME='';
+async function start(){
+  if(!TOKEN||!API||!KEY){message('Open your link','Please open the link that was sent to you on WhatsApp.');return}
+  show('boot');
+  let O;
+  try{O=await rpc('lp_open',{t:TOKEN})}
+  catch(e){message('Could not load',esc(e.message),true);return}
+  SETTINGS=(O&&O.settings)||{};
+  const co=SETTINGS.company_name||COMPANY_NAME;document.title=co;
+  if(!O||O.role==='none'){if(ls.get('lpOwner')===TOKEN)ls.del('lpOwner');ls.del('lpToken');message('This link no longer works','Please ask '+esc(co)+' to send you a new link.');return}
+  if(O.role==='blocked'){message('Access switched off','Please contact '+esc(co)+' to turn it back on.');return}
+  show('main');
+  if(O.role==='admin'){ls.set('lpOwner',TOKEN);ADMIN=O;$('custView').hidden=true;$('adminView').hidden=false;renderAdmin();return}
+  CUST=prepDoc(O.doc);CUSTNAME=O.name;C.reports=O.reports||[];C.preview=null;
+  $('adminView').hidden=true;$('custView').hidden=false;renderCustomer();
+}
+$('msgRetry').addEventListener('click',start);
+
+/* ---------- customer data maths ---------- */
+function prepDoc(doc){
+  return {company:doc.company,asOf:toDay(doc.as_of),accounts:doc.accounts.map(a=>{
+    const A={...a,from:toDay(a.from),bills:a.bills.map(b=>({...b,date:toDay(b.date)})),entries:a.entries.map(e=>({...e,date:toDay(e.date)})).sort((x,y)=>x.date-y.date),settleBy:{}};
+    a.settlements.forEach(s=>{(A.settleBy[s.bill]=A.settleBy[s.bill]||[]).push({...s,date:toDay(s.date)})});
+    return A})};
+}
+function billInfo(A,b,to){
+  let adj=0;for(const s of A.settleBy[b.id]||[])if(s.date<=to)adj+=s.amount;
+  const pend=b.amount-adj,due=b.date+(b.credit||0),od=pend>.5?Math.max(0,to-due):0;
+  return {b,adj,pend,due,od,status:pend<=.5?'paid':od>0?'od':adj>.5?'part':'unpaid'};
+}
+function accState(A,from,to){
+  let open=A.opening,close=A.opening;const inPeriod=[];
+  for(const e of A.entries){if(e.date<from)open+=e.delta;if(e.date<=to)close+=e.delta;if(e.date>=from&&e.date<=to)inPeriod.push(e)}
+  const pending=[];let pendSum=0,overdue=0;
+  for(const b of A.bills){if(b.date>to)continue;const x=billInfo(A,b,to);if(x.pend>.5){pending.push(x);pendSum+=x.pend;if(x.od>0)overdue+=x.pend}else if(x.pend<-.5)pendSum+=x.pend}
+  pending.sort((a,b)=>a.b.date-b.b.date);
+  return {open,close,inPeriod,pending,overdue,onAcc:close-pendSum};
+}
+function dueText(x,to){if(x.od>0)return '<span class="late">'+x.od+' day'+(x.od===1?'':'s')+' overdue</span>';const l=x.due-to;return '<span class="ok">'+(l===0?'Due today':'Due in '+l+' day'+(l===1?'':'s'))+'</span>'}
+
+/* ---------- customer screen ---------- */
+const C={tab:'pending',preset:'fy',from:FYS,to:TODAY,payOpen:false,preview:null,reports:[]};
+function ranges(minDay){return {fy:[Math.max(FYS,minDay),TODAY],lfy:[Math.max(toDay((FYY-1)+'-04-01'),minDay),FYS-1],l30:[TODAY-29,TODAY],all:[minDay,TODAY]}}
+function renderCustomer(){
+  const el=$('custView'),doc=C.preview?C.preview.doc:CUST;
+  const co=SETTINGS.company_name||(doc&&doc.company)||COMPANY_NAME;
+  const A=doc.accounts[0];
+  const top='<div class="ptop"><div class="brand"><div class="mark" aria-hidden="true">₹</div><div><h1>'+esc(co)+'</h1><p>Customer account</p></div></div><div class="who">'+
+    (C.preview?'<b>Preview</b><button class="linkbtn" data-c="endpreview">Back to owner view</button>':'<b>'+esc(A.name)+'</b>'+esc(A.city||'')+(ls.get('lpOwner')&&ls.get('lpOwner')!==TOKEN?'<br><button class="linkbtn" data-c="owner">Back to owner view</button>':''))+'</div></div>';
+  const R=ranges(A.from);if(R[C.preset])[C.from,C.to]=R[C.preset];
+  const st=accState(A,C.from,C.to);
+  const next=st.pending.filter(x=>x.od===0).sort((a,b)=>a.due-b.due)[0];
+  let h=top;
+  if(C.preview)h+='<div class="banner info"><b>Preview of '+esc(A.name)+'</b>This is exactly what this customer sees. Payment reporting is turned off in preview.</div>';
+  if(SETTINGS.notice)h+='<div class="notice">'+esc(SETTINGS.notice)+'</div>';
+  h+='<section class="duecard"><div class="k">Amount due as on '+fmtDate(C.to)+'</div><div class="amt num">'+rs(Math.max(0,st.close))+'</div><div class="duefacts"><span>Overdue: <b class="num" style="color:'+(st.overdue>0?'var(--pay)':'inherit')+'">'+rs(st.overdue)+'</b></span><span>Pending bills: <b>'+st.pending.length+'</b></span>'+(next?'<span>Next due: <b>'+rs(next.pend)+'</b> on '+fmtDate(next.due)+'</span>':'')+'</div>';
+  if(SETTINGS.bank_details){h+='<div class="dactions"><button class="btn primary" data-c="pay">'+(C.payOpen?'Hide payment details':'How to pay')+'</button></div>';if(C.payOpen)h+='<div class="paybox">'+esc(SETTINGS.bank_details)+'</div>'}
+  h+='<p class="onacc">Updated '+fmtDate(doc.asOf)+'. Payments made today may show after we record them.</p></section>';
+  const tabs=[['pending','Bills to pay'],['bills','All bills']];
+  if(SETTINGS.show_payments!==false)tabs.push(['pays','Payments']);
+  if(SETTINGS.show_statement!==false)tabs.push(['stmt','Statement']);
+  if(SETTINGS.allow_reports!==false)tabs.push(['report','I have paid']);
+  if(!tabs.some(t=>t[0]===C.tab))C.tab='pending';
+  h+='<div class="ptools"><div class="tabs" role="tablist">'+tabs.map(t=>'<button role="tab" data-ctab="'+t[0]+'" aria-selected="'+(C.tab===t[0])+'">'+t[1]+'</button>').join('')+'</div>'+
+    (['bills','pays','stmt'].includes(C.tab)?'<select class="tool-select" id="cPreset" aria-label="Period">'+[['fy','This financial year'],['lfy','Last financial year'],['l30','Last 30 days'],['all','Everything']].map(o=>'<option value="'+o[0]+'"'+(C.preset===o[0]?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>':'')+'</div>';
+  if(C.tab==='pending'){
+    h+=st.pending.length?'<div class="tablewrap"><table><thead><tr><th>Bill no.</th><th>Bill date</th><th>Due date</th><th class="r">Bill amount</th><th class="r">To pay</th><th>Status</th></tr></thead><tbody>'+
+      st.pending.map(x=>'<tr><td>'+esc(x.b.ref)+'</td><td>'+fmtDate(x.b.date)+'</td><td>'+fmtDate(x.due)+'</td><td class="r num">'+rs(x.b.amount)+'</td><td class="r num"><b>'+rs(x.pend)+'</b></td><td>'+dueText(x,C.to)+'</td></tr>').join('')+
+      '</tbody><tfoot><tr><td colspan="4">Total</td><td class="r num">'+rs(st.pending.reduce((a,x)=>a+x.pend,0))+'</td><td></td></tr></tfoot></table></div>':'<div class="panel" style="text-align:center">No bills to pay. Thank you!</div>';
+    if(Math.abs(st.onAcc)>.5)h+='<p class="onacc">'+(st.onAcc<0?'Advance / unadjusted credit: ':'Other amount not linked to a bill: ')+rs(Math.abs(st.onAcc))+'</p>';
+  }else if(C.tab==='bills'){
+    const bl=A.bills.filter(b=>b.date>=C.from&&b.date<=C.to&&b.amount>0).map(b=>billInfo(A,b,C.to)).sort((a,b)=>b.b.date-a.b.date);
+    h+='<div class="tablewrap"><table><thead><tr><th>Bill date</th><th>Bill no.</th><th class="r">Amount</th><th class="r">Paid</th><th class="r">Due</th><th>Status</th></tr></thead><tbody>'+(bl.length?bl.map(x=>'<tr><td>'+fmtDate(x.b.date)+'</td><td>'+esc(x.b.ref)+'</td><td class="r num">'+rs(x.b.amount)+'</td><td class="r num">'+rs(x.adj)+'</td><td class="r num"><b>'+rs(Math.max(0,x.pend))+'</b></td><td>'+(x.status==='paid'?'<span class="st paid">Paid</span>':x.status==='od'?'<span class="st od">Overdue</span>':x.status==='part'?'<span class="st part">Partly paid</span>':'<span class="st unpaid">Not due yet</span>')+'</td></tr>').join(''):'<tr><td colspan="6" class="empty">No bills in this period.</td></tr>')+'</tbody></table></div>';
+  }else if(C.tab==='pays'){
+    const pl=st.inPeriod.filter(e=>e.delta<0).reverse();
+    h+='<div class="tablewrap"><table><thead><tr><th>Date</th><th>Receipt no.</th><th>Type</th><th>Against bills</th><th class="r">Amount</th></tr></thead><tbody>'+(pl.length?pl.map(e=>'<tr><td>'+fmtDate(e.date)+'</td><td>'+esc(e.no)+'</td><td>'+esc(e.type)+'</td><td class="narr">'+(e.allocs.filter(a=>(a.type||'').toLowerCase()==='agst ref').map(a=>esc(a.ref)).join(', ')||'On account')+'</td><td class="r num" style="color:var(--recv)">'+rs(-e.delta)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">No payments in this period.</td></tr>')+'</tbody></table></div>';
+  }else if(C.tab==='stmt'){
+    if(!C.preview&&!ss.get('logged-stmt')){ss.set('logged-stmt','1');rpc('lp_log',{t:TOKEN,what:'statement'}).catch(()=>{})}
+    let bal=st.open,ti=0,td=0,rows='<tr><td>'+fmtDate(C.from)+'</td><td colspan="2"><b>Opening balance</b></td><td></td><td></td><td class="r num"><b>'+rs(bal)+'</b></td></tr>';
+    for(const e of st.inPeriod){bal+=e.delta;if(e.delta>0)ti+=e.delta;else td-=e.delta;rows+='<tr><td>'+fmtDate(e.date)+'</td><td>'+esc(e.type)+'</td><td>'+esc(e.no)+'</td><td class="r num">'+(e.delta>0?rs(e.delta):'')+'</td><td class="r num">'+(e.delta<0?rs(-e.delta):'')+'</td><td class="r num">'+rs(bal)+'</td></tr>'}
+    h+='<div class="tablewrap"><table><thead><tr><th>Date</th><th>Type</th><th>Voucher no.</th><th class="r">Bill amount</th><th class="r">Payment / credit</th><th class="r">Balance</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td colspan="3">Closing balance on '+fmtDate(C.to)+'</td><td class="r num">'+rs(ti)+'</td><td class="r num">'+rs(td)+'</td><td class="r num">'+rs(bal)+'</td></tr></tfoot></table></div>';
+    h+='<p class="onacc">Balance shown is the amount you owe us. A minus sign means we owe you.</p>';
+  }else if(C.tab==='report'){
+    const dis=C.preview?' disabled':'';
+    h+='<section class="panel"><h3>Tell us about a payment</h3><p class="onacc" style="margin:0 0 12px">Paid us directly? Let us know so we can match it quickly. It shows in your account after we record it.</p><div class="form">'+
+      '<label>Amount (₹)<input id="rpAmt" type="number" min="1" step="0.01" inputmode="decimal"'+dis+'></label>'+
+      '<label>Payment date<input id="rpDate" type="date" value="'+toISO(TODAY)+'" max="'+toISO(TODAY)+'"'+dis+'></label>'+
+      '<label>Paid by<select id="rpMode"'+dis+'>'+['UPI','NEFT','RTGS','IMPS','Cheque','Cash','Other'].map(m=>'<option>'+m+'</option>').join('')+'</select></label>'+
+      '<label>Reference (UTR / cheque no.)<input id="rpRef" maxlength="100"'+dis+'></label>'+
+      '<label class="full">Note (optional)<textarea id="rpNote" maxlength="500" placeholder="For example: against bills SI/012 and SI/015"'+dis+'></textarea></label></div>'+
+      '<div class="dactions"><button class="btn primary" data-c="send"'+dis+'>Send to '+esc(co)+'</button><span class="msg-err" id="rpErr" style="margin:0;align-self:center"></span></div></section>';
+    if(!C.preview){h+='<section class="panel"><h3>Payments you told us about</h3>'+(C.reports.length?'<div class="tablewrap"><table><thead><tr><th>Sent on</th><th>Paid on</th><th>Mode</th><th>Reference</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody>'+
+      C.reports.map(r=>'<tr><td>'+fmtTime(r.created_at)+'</td><td>'+fmtDate(toDay(r.paid_on))+'</td><td>'+esc(r.mode)+'</td><td>'+esc(r.ref)+'</td><td class="r num">'+rs(+r.amount)+'</td><td>'+(r.status==='checked'?'<span class="st paid">Checked</span>':'<span class="st unpaid">Received</span>')+'</td></tr>').join('')+'</tbody></table></div>':'<p class="onacc">None yet.</p>')+'</section>'}
+  }
+  h+='<p class="foot-note">Balances are as per the books of '+esc(co)+'. If anything looks wrong, please contact us. This page is private to you; please do not forward its link.</p>';
+  el.innerHTML=h;
+}
+async function sendReport(){
+  const err=$('rpErr');err.style.color='';err.textContent='';
+  const amount=parseFloat($('rpAmt').value),paid_on=$('rpDate').value,mode=$('rpMode').value,ref=$('rpRef').value.trim(),note=$('rpNote').value.trim();
+  if(!(amount>0)){err.textContent='Please enter the amount.';return}
+  if(!paid_on){err.textContent='Please choose the payment date.';return}
+  if(mode!=='Cash'&&!ref){err.textContent='Please enter the UTR or cheque number.';return}
+  let r;try{r=await rpc('lp_report',{t:TOKEN,amount,paid_on,mode,ref,note})}catch(e){err.textContent=e.message;return}
+  if(!r||!r.ok){err.textContent=(r&&r.message)||'Could not send. Please try again.';return}
+  try{const O=await rpc('lp_open',{t:TOKEN});C.reports=O.reports||C.reports}catch(e){}
+  renderCustomer();const e2=$('rpErr');if(e2){e2.style.color='var(--recv)';e2.textContent='Sent. Thank you!'}
+}
+$('custView').addEventListener('click',e=>{
+  const t=e.target.closest('[data-ctab]');if(t){C.tab=t.dataset.ctab;renderCustomer();return}
+  const c=e.target.closest('[data-c]');if(!c)return;
+  const k=c.dataset.c;
+  if(k==='pay'){C.payOpen=!C.payOpen;renderCustomer()}
+  else if(k==='send')sendReport();
+  else if(k==='owner'){TOKEN=ls.get('lpOwner');ls.set('lpToken',TOKEN);start()}
+  else if(k==='endpreview'){C.preview=null;$('custView').hidden=true;$('adminView').hidden=false;window.scrollTo(0,0)}
+});
+$('custView').addEventListener('change',e=>{if(e.target.id==='cPreset'){C.preset=e.target.value;renderCustomer()}});
+
+/* ---------- admin ---------- */
+let ADMIN=null;
+const AD={tab:'customers',q:'',showAll:false,busy:{},err:'',msg:''};
+async function reloadAdmin(){try{ADMIN=await rpc('lp_open',{t:TOKEN});SETTINGS=ADMIN.settings||{};AD.err=''}catch(e){AD.err=e.message}renderAdmin()}
+function custList(){return (ADMIN&&ADMIN.summary&&ADMIN.summary.customers)||[]}
+function nameOf(k){const c=custList().find(x=>x.ckey===k);return c?c.name:k}
+function linkTail(){const m=/^https:\/\/([a-z0-9]+)\.supabase\.co$/i.exec(API);return (m?'&s='+m[1].toLowerCase():'&u='+encodeURIComponent(API))+'&p='+encodeURIComponent(KEY)}
+function linkFor(k){const t=ADMIN.links[k];return t?SITE+'#k='+t+linkTail():''}
+function shareText(name,link){
+  const co=SETTINGS.company_name||(ADMIN.summary&&ADMIN.summary.company)||COMPANY_NAME;
+  return 'Hello '+name+',\n\nHere is your account with '+co+'. Tap the link to see your bills, payments and statement at any time:\n'+link+
+    '\n\nTip: after it opens, tap "Install" (Android) or Share > "Add to Home Screen" (iPhone) to keep it as an app.\nThis link is only for you. Please do not forward it.';
+}
+function openShare(c){
+  const link=linkFor(c.ckey);if(!link){alert('This customer has no link yet. Upload from the office app first.');return}
+  const t=shareText(c.name,link);
+  $('shTitle').textContent='Send link to '+c.name;
+  $('shSub').textContent=c.phone?'WhatsApp opens a chat with '+c.phone+' with this message written. Press send.':'No mobile number in Tally, so WhatsApp will ask you to choose the contact.';
+  $('shText').value=t;$('shCopied').textContent='';
+  const upd=()=>{$('shWa').href=(c.phone?'https://wa.me/'+c.phone.replace(/\D/g,''):'https://wa.me/')+'?text='+encodeURIComponent($('shText').value)};
+  upd();$('shText').oninput=upd;
+  $('shareModal').classList.add('on');
+}
+$('shClose').addEventListener('click',()=>$('shareModal').classList.remove('on'));
+$('shareModal').addEventListener('click',e=>{if(e.target===$('shareModal'))$('shareModal').classList.remove('on')});
+$('shCopy').addEventListener('click',async()=>{const t=$('shText');try{await navigator.clipboard.writeText(t.value);$('shCopied').textContent='Copied'}catch(e){t.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}$('shCopied').textContent=ok?'Copied':'Selected, press Ctrl+C'}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('shareModal').classList.remove('on')});
+
+function renderAdmin(){
+  const el=$('adminView');
+  const co=SETTINGS.company_name||(ADMIN&&ADMIN.summary&&ADMIN.summary.company)||COMPANY_NAME;
+  const newRep=(ADMIN.reports||[]).filter(r=>r.status==='new').length;
+  let h='<div class="ptop"><div class="brand"><div class="mark" aria-hidden="true">₹</div><div><h1>'+esc(co)+'</h1><p>Owner view</p></div></div><div class="who"><a class="btn sm primary" href="reports.html" style="display:inline-flex;align-items:center;text-decoration:none">Full reports</a></div></div>';
+  h+='<nav class="nav" role="tablist">'+[['customers','Customers'],['reports','Payments reported'+(newRep?' <span class="badge">'+newRep+'</span>':'')],['activity','Activity'],['settings','Settings']].map(t=>'<button role="tab" data-at="'+t[0]+'" aria-selected="'+(AD.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>';
+  if(AD.err)h+='<div class="banner err"><b>Problem</b>'+esc(AD.err)+'</div>';
+  if(!ADMIN.summary){el.innerHTML=h+'<div class="banner info"><b>No data yet</b>Turn on "Upload to the online portal" in the office app\'s Settings and sync.</div>';return}
+  const list=custList();
+  if(AD.tab==='customers'){
+    const opened={};(ADMIN.activity||[]).filter(a=>a.action==='open').forEach(a=>{if(!opened[a.ckey])opened[a.ckey]=a.at});
+    const tot=list.reduce((a,c)=>a+Math.max(0,c.outstanding),0),od=list.reduce((a,c)=>a+c.overdue,0);
+    const act30=new Set((ADMIN.activity||[]).filter(a=>a.action==='open'&&Date.now()-new Date(a.at)<30*DAY).map(a=>a.ckey)).size;
+    h+='<div class="summary s4">'+[['Customers owe you',compact(tot)],['Overdue',compact(od)],['Opened in last 30 days',act30+' of '+list.length],['Data updated',fmtTime(ADMIN.synced_at)]].map(x=>'<div><small>'+x[0]+'</small><b class="num">'+x[1]+'</b></div>').join('')+'</div>';
+    h+='<div class="bar"><input class="search" id="adQ" type="search" placeholder="Search customer or mobile" value="'+esc(AD.q)+'"><label class="chk"><input type="checkbox" id="adAll"'+(AD.showAll?' checked':'')+'>Show settled</label></div>';
+    const q=AD.q.trim().toLowerCase();
+    const rows=list.filter(c=>(!q||(c.name+' '+c.phone+' '+c.city).toLowerCase().includes(q))&&(AD.showAll||Math.abs(c.outstanding)>.5)).sort((a,b)=>b.outstanding-a.outstanding);
+    h+='<div class="tablewrap"><table><thead><tr><th>Customer</th><th class="r">Outstanding</th><th class="r">Overdue</th><th>Last opened</th><th>Access</th><th></th></tr></thead><tbody>'+
+      (rows.length?rows.map(c=>{const on=ADMIN.access[c.ckey]!==false,busy=AD.busy[c.ckey];
+        return '<tr><td class="party"><b>'+esc(c.name)+'</b><br><span class="narr">'+esc([c.city,c.phone].filter(Boolean).join(', '))+'</span></td><td class="r num">'+rs(c.outstanding)+'</td><td class="r num'+(c.overdue>0?' late':'')+'">'+rs(c.overdue)+'</td><td>'+fmtTime(opened[c.ckey])+'</td>'+
+          '<td><label class="switch"><input type="checkbox" data-access="'+esc(c.ckey)+'"'+(on?' checked':'')+' aria-label="Access for '+esc(c.name)+'"> '+(on?'On':'Off')+'</label></td>'+
+          '<td style="white-space:nowrap;text-align:right">'+(busy?'<span class="ok">Working…</span>':'<button class="btn sm primary" data-send="'+esc(c.ckey)+'">Send link</button> <button class="btn sm" data-view="'+esc(c.ckey)+'">View</button> <button class="btn sm" data-renew="'+esc(c.ckey)+'">New link</button>')+'</td></tr>'}).join(''):'<tr><td colspan="6" class="empty">No customers match.</td></tr>')+'</tbody></table></div>'+
+      '<p class="foot-note">Send link opens WhatsApp with the customer\'s private link. New link stops the old link working at once (use it if a link was forwarded). Access off blocks the customer straight away.</p>';
+  }else if(AD.tab==='reports'){
+    const R=ADMIN.reports||[];
+    h+=R.length?'<div class="tablewrap"><table><thead><tr><th>Sent on</th><th>Customer</th><th>Paid on</th><th>Mode</th><th>Reference</th><th>Note</th><th class="r">Amount</th><th>Status</th></tr></thead><tbody>'+
+      R.map(r=>'<tr><td>'+fmtTime(r.created_at)+'</td><td class="party"><b>'+esc(r.name||nameOf(r.ckey))+'</b></td><td>'+fmtDate(toDay(r.paid_on))+'</td><td>'+esc(r.mode)+'</td><td>'+esc(r.ref)+'</td><td class="narr" style="white-space:normal;min-width:160px">'+esc(r.note)+'</td><td class="r num"><b>'+rs(+r.amount)+'</b></td><td>'+(r.status==='checked'?'<span class="st paid">Checked</span>':'<button class="btn sm" data-check="'+r.id+'">Mark checked</button>')+'</td></tr>').join('')+'</tbody></table></div><p class="foot-note">Mark a payment as checked once you have matched it with your bank and entered the receipt in Tally.</p>'
+      :'<div class="panel" style="text-align:center">No payments reported yet.</div>';
+  }else if(AD.tab==='activity'){
+    const label={open:'Opened their account',statement:'Viewed statement',report:'Reported a payment'};
+    const A=ADMIN.activity||[];
+    h+=A.length?'<div class="tablewrap"><table><thead><tr><th>When</th><th>Customer</th><th>What</th></tr></thead><tbody>'+A.map(a=>'<tr><td>'+fmtTime(a.at)+'</td><td>'+esc(a.name||nameOf(a.ckey))+'</td><td>'+(label[a.action]||esc(a.action))+'</td></tr>').join('')+'</tbody></table></div>':'<div class="panel" style="text-align:center">No activity yet.</div>';
+  }else{
+    const s=SETTINGS;
+    h+='<section class="panel"><h3>What customers see</h3><div class="form">'+
+      '<label class="full">Company name<input id="stName" maxlength="120" value="'+esc(s.company_name||'')+'" placeholder="'+esc(co)+'"></label>'+
+      '<label class="full">How to pay (bank and UPI details)<textarea id="stBank" maxlength="1000">'+esc(s.bank_details||'')+'</textarea></label>'+
+      '<label class="full">Notice at the top of every customer page (leave empty for none)<textarea id="stNotice" maxlength="500">'+esc(s.notice||'')+'</textarea></label>'+
+      '<label class="chkrow"><input type="checkbox" id="stStmt"'+(s.show_statement!==false?' checked':'')+'>Show statement</label>'+
+      '<label class="chkrow"><input type="checkbox" id="stPays"'+(s.show_payments!==false?' checked':'')+'>Show payment history</label>'+
+      '<label class="chkrow"><input type="checkbox" id="stRep"'+(s.allow_reports!==false?' checked':'')+'>Let customers report payments</label>'+
+      '</div><div class="dactions"><button class="btn primary" data-ad="save">Save settings</button><span class="msg-ok" id="stMsg" style="margin:0;align-self:center"></span></div></section>'+
+      '<section class="panel"><h3>This phone</h3><p class="onacc" style="margin:0 0 10px">Your owner link is saved on this phone so the page opens straight away. Remove it if this phone is shared.</p><button class="btn" data-ad="forget">Remove owner link from this phone</button></section>';
+  }
+  el.innerHTML=h;
+}
+$('adminView').addEventListener('click',async e=>{
+  const tb=e.target.closest('[data-at]');if(tb){AD.tab=tb.dataset.at;renderAdmin();reloadAdmin();return}
+  const sd=e.target.closest('[data-send]');if(sd){openShare(custList().find(c=>c.ckey===sd.dataset.send));return}
+  const vw=e.target.closest('[data-view]');
+  if(vw){let d;try{d=await rpc('lp_admin_account',{t:TOKEN,k:vw.dataset.view})}catch(err){alert(err.message);return}
+    if(!d){alert('This customer has no data online yet.');return}
+    C.preview={doc:prepDoc(d)};C.tab='pending';C.payOpen=false;$('adminView').hidden=true;$('custView').hidden=false;renderCustomer();window.scrollTo(0,0);return}
+  const rn=e.target.closest('[data-renew]');
+  if(rn){const k=rn.dataset.renew;if(!confirm('Make a new link for '+nameOf(k)+'? Their old link stops working at once, and you will need to send them the new one.'))return;
+    AD.busy[k]=true;renderAdmin();
+    try{const t=await rpc('lp_admin_newlink',{t:TOKEN,k});ADMIN.links[k]=t;delete AD.busy[k];renderAdmin();openShare(custList().find(c=>c.ckey===k))}
+    catch(err){delete AD.busy[k];AD.err=err.message;renderAdmin()}return}
+  const ck=e.target.closest('[data-check]');
+  if(ck){ck.disabled=true;try{await rpc('lp_admin_check',{t:TOKEN,report_id:+ck.dataset.check})}catch(err){AD.err=err.message}await reloadAdmin();return}
+  const a=e.target.closest('[data-ad]');if(!a)return;
+  if(a.dataset.ad==='save'){
+    const body={company_name:$('stName').value.trim(),bank_details:$('stBank').value.trim(),notice:$('stNotice').value.trim(),show_statement:$('stStmt').checked,show_payments:$('stPays').checked,allow_reports:$('stRep').checked};
+    try{await rpc('lp_admin_settings',{t:TOKEN,s:body});SETTINGS={...SETTINGS,...body};$('stMsg').textContent='Saved.'}catch(err){$('stMsg').textContent='Could not save: '+err.message}}
+  if(a.dataset.ad==='forget'){if(confirm('Remove the owner link from this phone? You can open it again from the office app or from your WhatsApp.')){ls.del('lpToken');ls.del('lpOwner');location.reload()}}
+});
+$('adminView').addEventListener('change',async e=>{
+  if(e.target.id==='adAll'){AD.showAll=e.target.checked;renderAdmin();return}
+  const k=e.target.dataset.access;if(!k)return;const on=e.target.checked;
+  try{await rpc('lp_admin_access',{t:TOKEN,k,on_off:on});ADMIN.access[k]=on;AD.err=''}catch(err){AD.err=err.message;e.target.checked=!on}
+  renderAdmin();
+});
+$('adminView').addEventListener('input',e=>{if(e.target.id==='adQ'){AD.q=e.target.value;const pos=e.target.selectionStart;renderAdmin();const q=$('adQ');q.focus();q.setSelectionRange(pos,pos)}});
+
+start();
+</script>
+</body>
+</html>
