@@ -1,0 +1,45 @@
+name: Build Windows app
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install the packaging tool
+        run: pip install pyinstaller==6.10.0
+
+      - name: Build TallyPartyApp.exe
+        run: >
+          pyinstaller --noconfirm --onefile --windowed
+          --name TallyPartyApp --icon app.ico
+          --add-data "app.html;."
+          --add-data "sample-data.json;."
+          --add-data "config.default.json;."
+          launcher.py
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build the installer
+        shell: pwsh
+        run: |
+          $iscc = Get-ChildItem "C:\Program Files (x86)\Inno Setup 6\ISCC.exe","C:\Program Files\Inno Setup 6\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          & $iscc.FullName installer.iss
+
+      - name: Make the installer available to download
+        uses: actions/upload-artifact@v4
+        with:
+          name: TallyPartyApp-Setup
+          path: dist/TallyPartyApp-Setup.exe
